@@ -1,0 +1,6 @@
+{
+  "name": "mint-rush",
+  "private": true,
+  "description": "Mint Rush: 3D money printer tycoon and case opening",
+  "engines": { "node": ">=18" }
+}
