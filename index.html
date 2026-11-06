@@ -906,6 +906,9 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 .vs-bar{flex:1;height:8px;border-radius:5px;background:#ff6b6b;overflow:hidden}.vs-bar i{display:block;height:100%;width:50%;background:#2ecc71;transition:width .4s}
 .vs-bets .chip{font-size:.85rem}#vsBetIn{width:100%}
 .duel-row.tie b{color:var(--gold-glow)}
+.adm-tag{display:inline-block;align-self:flex-start;font-style:normal;font-size:.62rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:linear-gradient(90deg,#ff3b5c,#9b5de5);border-radius:6px;padding:1px 6px;box-shadow:0 0 8px rgba(255,59,92,.45);white-space:nowrap}
+.pf-txt .adm-tag{margin-bottom:3px}
+.cm-name i.adm-tag,.rank-row i.adm-tag{color:#fff;background:linear-gradient(90deg,#ff3b5c,#9b5de5);font-size:.6rem;padding:1px 5px;border-radius:6px}
 /* ===================== DARK MODE (pure black) ===================== */
 html[data-theme=dark]{color-scheme:dark;--sky:#000;--sky2:#000;--tx:#f2f2f5;--muted:#9a9aa8;--card:#0e0e11;--edge:#26262e;--s2:#16161b;--s3:#202027;--line2:#2c2c35}
 html[data-theme=dark] body{background:#000;color:var(--tx)}
@@ -936,6 +939,8 @@ html[data-theme=dark] .tabbar{border-top:1px solid var(--edge)}
 html[data-theme=dark] .tabbar button{color:var(--muted)}
 html[data-theme=dark] :is(.shop-tabs button,.seg button){color:var(--muted)}
 .theme-seg{grid-template-columns:repeat(3,1fr)!important}
+html[data-theme=dark] .toast{background:#24242c;color:#fff;border:1px solid #3a3a44}
+html[data-theme=dark] .sheet-tabs button[aria-pressed=true]{background:#f2f2f5;color:#000}
 </style>
 </head>
 <body>
@@ -1679,7 +1684,7 @@ function renderRanks(){
   const rows = src.map(u => ({ name:u.name, score: arId ? arScore(u) : rankMode==="factory" ? facScore(u) : invValue(u), sk:u.show || null, u })).filter(r => !arId || r.score > 0).sort((x,y)=>y.score-x.score).slice(0,50);
   $("#rankNote").textContent = (ONLINE ? "All online players" : "Players on this device") + (arId ? ` · best rank score (score × difficulty)` : rankMode==="factory" ? " · all-time cash printed" : " · total skin value");
   const medal = i => i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i+1;
-  $("#rankList").innerHTML = rows.length ? rows.map((r,i)=>{ const cz = typeof cosOf === "function" ? cosOf(r.u) : null; return `<div class="rank-row ${r.name===myName?"me":""}"><span class="rk">${medal(i)}</span><b class="rk-n">${cz ? `<i class="rk-av" style="background:${cz.ban.bg}">${cz.av}</i>` : ""}<span ${cz && cz.col ? `style="color:${cz.col}"` : ""}>${String(r.name).replace(/[<>&]/g,"")}</span>${cz && cz.title ? ` <i class="rk-ti">${cz.title}</i>` : ""}${r.sk ? ` <i class="rk-sk" style="background:${(typeof rarOf==="function" ? rarOf(r.sk) : {c:"#ccc"}).c}"></i>` : ""}</b><span class="num">${arId ? fmt(r.score) + " pts" : rankMode==="factory" ? money(r.score) : fmtBig(r.score) + " ◆"}</span></div>`; }).join("") : `<p class="empty">${arId ? "No runs yet. Be the first!" : "No players yet."}</p>`;
+  $("#rankList").innerHTML = rows.length ? rows.map((r,i)=>{ const cz = typeof cosOf === "function" ? cosOf(r.u) : null; return `<div class="rank-row ${r.name===myName?"me":""}"><span class="rk">${medal(i)}</span><b class="rk-n">${cz ? `<i class="rk-av" style="background:${cz.ban.bg}">${cz.av}</i>` : ""}<span ${cz && cz.col ? `style="color:${cz.col}"` : ""}>${String(r.name).replace(/[<>&]/g,"")}</span>${cz && cz.adm ? ` <i class="adm-tag">🛠️ ADMIN</i>` : ""}${cz && cz.title ? ` <i class="rk-ti">${cz.title}</i>` : ""}${r.sk ? ` <i class="rk-sk" style="background:${(typeof rarOf==="function" ? rarOf(r.sk) : {c:"#ccc"}).c}"></i>` : ""}</b><span class="num">${arId ? fmt(r.score) + " pts" : rankMode==="factory" ? money(r.score) : fmtBig(r.score) + " ◆"}</span></div>`; }).join("") : `<p class="empty">${arId ? "No runs yet. Be the first!" : "No players yet."}</p>`;
 }
 
 // ---------- me ----------
@@ -5015,7 +5020,7 @@ function adminOptsUI(){
 $("#adminBtn").onclick = () => { sfx.click(); $("#codeRes").textContent = ""; $("#adminCode").value = ""; adminOptsUI(); $("#codeModal").hidden = false; setTimeout(() => $("#adminCode").focus(), 50); };
 $("#adminGo").onclick = () => {
   const v = $("#adminCode").value.trim(), r = $("#codeRes"); $("#adminCode").value = "";
-  if(v === ADMIN_CODE){ mem.isAdmin = true; saveLocal(); renderMeExtras(); adminOptsUI(); r.textContent = "Admin unlocked"; r.className = "result win"; sfx.click(); return; }
+  if(v === ADMIN_CODE){ mem.isAdmin = true; saveLocal(); grantAdminTag(true); renderMeExtras(); adminOptsUI(); r.textContent = "Admin unlocked"; r.className = "result win"; sfx.click(); return; }
   r.textContent = "Wrong code"; r.className = "result lose"; sfx.lose();
 };
 $("#adminCode").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); $("#adminGo").click(); } });
@@ -5366,7 +5371,7 @@ function chatStop(){ chatUnsubs.forEach(u => { try{ u(); }catch(e){} }); chatUns
 async function loadMutes(){ if(NET.db && NET.db.http) try{ mutes = (await NET.db.call({ op:"mutes" })).mutes || {}; }catch(e){} }
 const nameCol = m => m.col && /^#[0-9a-f]{6}$/i.test(m.col) ? `style="color:${m.col}"` : "";
 function chatMsgHTML(m){ const mine = m.from === onlineKey, t = new Date(m.t);
-  return `<div class="cm ${mine ? "mine" : ""}" data-m="${m.id}"><div class="cm-top"><b class="cm-name" data-who="${esc(m.from)}" data-nm="${esc(m.fromName)}" ${nameCol(m)}>${m.av && typeof findAv === "function" && findAv(m.av) ? `<span class="cm-av">${m.av}</span>` : ""}${m.title ? `<i>${esc(m.title)}</i> ` : ""}${esc(m.fromName)}</b><small>${t.getHours()}:${String(t.getMinutes()).padStart(2,"0")}</small></div><div class="cm-text">${esc(cleanText(m.text))}</div></div>`; }
+  return `<div class="cm ${mine ? "mine" : ""}" data-m="${m.id}"><div class="cm-top"><b class="cm-name" data-who="${esc(m.from)}" data-nm="${esc(m.fromName)}" ${nameCol(m)}>${m.av && typeof findAv === "function" && findAv(m.av) ? `<span class="cm-av">${m.av}</span>` : ""}${m.adm ? `<i class="adm-tag">🛠️ ADMIN</i> ` : ""}${m.title ? `<i>${esc(m.title)}</i> ` : ""}${esc(m.fromName)}</b><small>${t.getHours()}:${String(t.getMinutes()).padStart(2,"0")}</small></div><div class="cm-text">${esc(cleanText(m.text))}</div></div>`; }
 function dmThreads(){ const map = {}; chatIn.concat(chatOut).forEach(m => { const o = m.from === onlineKey ? m.to : m.from, nm = m.from === onlineKey ? m.toName : m.fromName;
   (map[o] = map[o] || { key:o, name:nm, msgs:[] }).msgs.push(m); }); return Object.values(map).map(x => (x.msgs.sort((a,b)=>a.t-b.t), x.last = x.msgs[x.msgs.length-1].t, x)).sort((a,b)=>b.last-a.last); }
 function chatRender(){
@@ -5500,6 +5505,13 @@ function banKick(msg){
 addEventListener("mr-banned", e => banKick(e.detail));
 setInterval(async () => { if(!ONLINE || !onlineKey || !NET.db || !NET.db.call || document.hidden) return;
   try{ const bans = (await NET.db.call({ op:"bans" })).bans || {}; if(bans[onlineKey]) banKick(bans[onlineKey] >= BAN_FOREVER ? "You've been banned from Mint Rush." : `You're banned ${untilText(bans[onlineKey])}.`); }catch(e){} }, 20000);
+// ---------- the admin name tag: given to your account when you enter the admin code ----------
+async function grantAdminTag(announce){
+  const a = me(); if(!a || a.adm) return;
+  if(ONLINE){ try{ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"tag" }); }catch(e){ return; } }
+  a.adm = true; save(); if(announce) toast("🛠️ You now have the ADMIN name tag"); if(current === "me") renderMe();
+}
+setInterval(() => { if(mem.isAdmin && me() && !me().adm) grantAdminTag(false); }, 5000);   // admins from before the tag existed get it too
 // ===================== THEME: dark (default) / light / auto =====================
 function themeNow(){ const t = mem.theme || "dark"; return t === "auto" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : t; }
 function applyTheme(){
@@ -6098,7 +6110,7 @@ const findAv = s => AVATARS.find(x => x[0] === s);
 function cosOf(u){
   const c = (u && u.cos) || {}, av = findAv(c.av) ? c.av : "😀", col = (NAME_COLS.find(x => x.id === c.col) || NAME_COLS[0]).c,
     t = TITLES.find(x => x.id === c.title), ban = BANNERS.find(x => x.id === c.ban) || BANNERS[0];
-  return { av, col, title: t && t.id !== "rookie" ? t.n : null, ban };
+  return { av, col, title: t && t.id !== "rookie" ? t.n : null, ban, adm: !!(u && u.adm) };
 }
 function myCosmetics(){ const a = me(); if(!a) return {}; ensureCos(a); return cosOf(a); }
 function petMult(){ const a = me(); if(!a || !a.cos || !a.cos.pets) return 1; return 1 + a.cos.pets.reduce((s, p) => s + ((PETS[p] && PETS[p].b) || 0), 0); }
@@ -6154,7 +6166,7 @@ function renderShop(){
   }
   if(shopTab === "me"){
     const me_ = cosOf(a);
-    h = `<div class="pf-head mini" style="background:${me_.ban.bg}" data-dark="${!!me_.ban.dark}"><div class="pf-av">${me_.av}</div><div class="pf-txt">${me_.title ? `<span class="pf-title">${escC(me_.title)}</span>` : ""}<b class="pf-name" style="${me_.col ? `color:${me_.col}` : ""}">${escC(a.name)}</b></div></div>
+    h = `<div class="pf-head mini" style="background:${me_.ban.bg}" data-dark="${!!me_.ban.dark}"><div class="pf-av">${me_.av}</div><div class="pf-txt">${me_.adm ? `<span class="adm-tag">🛠️ ADMIN</span>` : ""}${me_.title ? `<span class="pf-title">${escC(me_.title)}</span>` : ""}<b class="pf-name" style="${me_.col ? `color:${me_.col}` : ""}">${escC(a.name)}</b></div></div>
       <div class="shop-sec">Avatar</div><div class="chip-grid">${AVATARS.map(([e, p]) => { const key = "av:" + e, own = ownsCos(a, key, p), on = c.av === e;
         return `<button class="av-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}">${e}${own ? "" : `<small>${shopPend === key ? "again" : p < 0 ? "🎟️" : fmtBig(p)}</small>`}</button>`; }).join("")}</div>
       <div class="shop-sec">Name colour</div><div class="chip-grid">${NAME_COLS.map(x => { const key = "c:" + x.id, own = ownsCos(a, key, x.p), on = c.col === x.id;
@@ -6246,6 +6258,7 @@ function cosRenderMe(){
   const a = me(); if(!a) return; ensureCos(a); const c = cosOf(a), h = $("#pfHead"); if(!h) return;
   h.style.background = c.ban.bg; h.dataset.dark = !!c.ban.dark;
   $("#pfAv").textContent = c.av; $("#pfTitle").textContent = c.title || ""; $("#pfTitle").hidden = !c.title;
+  let at = $("#pfAdm"); if(!at){ $("#pfTitle").insertAdjacentHTML("beforebegin", `<span class="adm-tag" id="pfAdm" hidden>🛠️ ADMIN</span>`); at = $("#pfAdm"); } at.hidden = !c.adm;
   $("#meName").style.color = c.col || "";
   $("#pfPets").textContent = a.cos.pets.length ? a.cos.pets.map(p => PETS[p].ic).join(" ") + ` · +${Math.round((petMult() - 1)*100)}% income` : "";
   $("#spinBtn").classList.toggle("ready", spinReady(a)); $("#spinBtn").textContent = spinReady(a) ? "🎡 Daily spin (ready!)" : "🎡 Daily spin";

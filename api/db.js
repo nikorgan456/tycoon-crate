@@ -150,6 +150,8 @@ module.exports = async (req, res) => {
       if (b.action === "ban") { if (!validKey(b.target)) fail(400, "Bad player"); const mins = +b.minutes; const until = !(mins > 0) ? FOREVER : Date.now() + Math.min(mins, 60 * 24 * 365 * 100) * 60000;
         await redis([["HSET", P + "bans", b.target, String(until)]]); return res.status(200).json({ ok: true, until }); }
       if (b.action === "unban") { await redis([["HDEL", P + "bans", String(b.target || "")]]); return res.status(200).json({ ok: true }); }
+      if (b.action === "tag") { const [raw] = await redis([["HGET", P + "players", k]]); const acc = raw ? parse(raw) : null; if (!acc) fail(400, "Account not found.");
+        acc.adm = true; await redis([["HSET", P + "players", k, JSON.stringify(acc)]]); return res.status(200).json({ ok: true }); }
       if (b.action === "unmute") { await redis([["HDEL", P + "mutes", String(b.target || "")]]); return res.status(200).json({ ok: true }); }
       fail(400, "Unknown admin action");
     }
@@ -200,6 +202,7 @@ module.exports = async (req, res) => {
           if (!b.data || b.data.from !== k || typeof b.data.text !== "string" || !b.data.text.trim() || b.data.text.length > 240) fail(400, "Bad message");
           if (b.data.to === "all" && !isAdminCode(b.data.code)) fail(403, "Only admins can post in Everyone chat.");
           delete b.data.code;
+          { const [pr] = await redis([["HGET", P + "players", k]]); const pd = pr ? parse(pr) : null; b.data.adm = !!(pd && pd.adm); }
         }
       }
       const [raw] = await redis([["HGET", P + c, id]]);
@@ -218,7 +221,7 @@ module.exports = async (req, res) => {
         if (c === "market" && data.seller !== k) fail(403, "Listings must be your own.");
         if ((c === "trades" || c === "duels") && data.from !== k) fail(403, "Requests must come from you.");
       }
-      if (c === "players") { data.key = k; data.ph = cur ? cur.ph : data.ph; }
+      if (c === "players") { data.key = k; data.ph = cur ? cur.ph : data.ph; data.adm = !!(cur && cur.adm); }   // only the admin code can give the admin tag
       const s = JSON.stringify(data); if (s.length > 250000) fail(400, "Too large");
       await redis([["HSET", P + c, id, s]]);
       if (!cur && (c === "trades" || c === "duels") && Math.random() < 0.05) prune(c).catch(() => {});
