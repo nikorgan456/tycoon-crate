@@ -767,6 +767,13 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 .stk-row small{color:var(--muted);font-size:.76rem;font-weight:700}
 .stk-buy{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .stk-buy b{font-family:var(--mono)}
+/* factory tabs: all six visible at once */
+.tabrow.sheet-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;overflow:visible}
+.sheet-grid button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px!important;font-size:.64rem!important;line-height:1.1;min-width:0;white-space:nowrap}
+.sheet-grid button span:first-child{font-size:1.05rem;line-height:1}
+.sheet-grid .badge{top:-4px;right:2px}
+#sheetBody button *{pointer-events:none}
+.lift-btn{top:62px}
 </style>
 </head>
 <body>
@@ -815,13 +822,13 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
     </div>
     <div class="sheet">
       <div class="sheet-tabs" id="sheetTabs">
-        <div class="tabrow">
-        <button aria-pressed="true" data-s="printers">Printers</button>
-        <button aria-pressed="false" data-s="upgrades">Upgrades<span class="badge" id="upBadge" hidden>0</span></button>
-        <button aria-pressed="false" data-s="vault">Vault</button>
-        <button aria-pressed="false" data-s="public">Go Public</button>
-        <button aria-pressed="false" data-s="rebirth">Rebirth</button>
-        <button aria-pressed="false" data-s="stocks">📈 Stocks</button>
+        <div class="tabrow sheet-grid">
+        <button aria-pressed="true" data-s="printers"><span>🖨️</span>Printers</button>
+        <button aria-pressed="false" data-s="upgrades"><span>⬆️</span>Upgrades<span class="badge" id="upBadge" hidden>0</span></button>
+        <button aria-pressed="false" data-s="vault"><span>🏦</span>Vault</button>
+        <button aria-pressed="false" data-s="public"><span>📣</span>Public</button>
+        <button aria-pressed="false" data-s="rebirth"><span>♻️</span>Rebirth</button>
+        <button aria-pressed="false" data-s="stocks"><span>📈</span>Stocks</button>
         </div>
         <div class="buymode" id="buyMode"><button aria-pressed="true" data-m="1">x1</button><button aria-pressed="false" data-m="10">x10</button><button aria-pressed="false" data-m="100">x100</button><button aria-pressed="false" data-m="max">MAX</button></div>
       </div>
@@ -1202,7 +1209,7 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 <div class="modal dark" id="adminModal" hidden>
   <div class="panel wide">
     <div class="mhead"><h2>Admin · any skin</h2><button class="btn ghost small" data-close>Close</button></div>
-    <p class="muted" style="margin:0">Pick a crate, a gun, a skin and its wear. Admin skins work everywhere (equip, Arena, vault) but can't be sold, listed or traded, so they never turn into tokens.</p>
+    <p class="muted" style="margin:0">Pick a crate, a gun, a skin and its wear. Admin skins work everywhere (equip, Arena, vault). They can't be listed or traded, but you can sell them to the game for 100 tokens each.</p>
     <div class="inv-tools"><select id="adCrate" aria-label="Crate"></select><select id="adGun" aria-label="Gun"></select><select id="adWear" aria-label="Wear"></select></div>
     <div class="inv-grid" id="adGrid"></div>
     <div class="result" id="adRes"></div>
@@ -1694,10 +1701,11 @@ function renderSheetLight(){
   const f = F(); if(!f) return;
   $$("#sheetBody [data-buy]").forEach(b => {
     const i = +b.dataset.buy, un = unlocked(i), n = buyCount(i), cost = levelCost(i, f.lv[i], n);
-    b.disabled = !un || f.cash < cost;
-    b.innerHTML = f.lv[i] ? `x${n}<small>${money(cost)}</small>` : `Build<small>${money(cost)}</small>`;
+    const dis = !un || f.cash < cost; if(b.disabled !== dis) b.disabled = dis;
+    const html = f.lv[i] ? `x${n}<small>${money(cost)}</small>` : `Build<small>${money(cost)}</small>`;
+    if(b._html !== html){ b._html = html; b.innerHTML = html; }   // only touch the button when its text changes, so taps never get lost
   });
-  $$("#sheetBody [data-up]").forEach(b => { const u = UPG.find(x=>x.id===b.dataset.up); b.disabled = f.cash < u.cost; });
+  $$("#sheetBody [data-up]").forEach(b => { const u = UPG.find(x=>x.id===b.dataset.up), dis = f.cash < u.cost; if(b.disabled !== dis) b.disabled = dis; });
   const vu = $("#vaultUp"); if(vu && f.vl < VC.length-1) vu.disabled = f.cash < vaultCost(f.vl+1);
   const ab = $("#autoBuy"); if(ab) ab.disabled = f.cash < AUTO_COST;
   const aff = UPG.filter(u => !f.up.includes(u.id) && (u.kind !== "st" || f.lv[u.i] > 0) && f.cash >= u.cost).length;
@@ -1735,7 +1743,7 @@ function renderGoal(){
 function msBanner(t){ const b = $("#msBanner"); if(!b) return toast(t); b.textContent = t; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); }
 function hud(){
   const a = me(); if(!a) return; const f = a.fac, inc = incomeAll();
-  if(!(shownCash >= 0) || Math.abs(f.cash - shownCash) < Math.max(1, f.cash*.002) || f.cash < shownCash*.5) shownCash = f.cash; else shownCash += (f.cash - shownCash) * .35;
+  if(!(shownCash >= 0) || Math.abs(f.cash - shownCash) < Math.max(1, f.cash*.002) || f.cash < shownCash) shownCash = f.cash; else shownCash += (f.cash - shownCash) * .35;
   $("#hudCash").textContent = money(shownCash);
   if(now() - goalAt > 900){ goalAt = now(); renderGoal(); }
   $("#hudRate").textContent = `${money(inc + stockIncome())}/s` + (f.rb ? ` · ×${rbMult()}` : "");
@@ -2352,10 +2360,12 @@ $("#openBtn").onclick = async () => {
 };
 // Sell skins straight to the game at 70% of their value, so you're never stuck broke.
 const SELL_RATE = .7;
-const sellPrice = items => items.reduce((s,i)=>s + Math.max(1, Math.floor(i.v * SELL_RATE)), 0);
+const ADMIN_SELL = 100;   // admin-spawned skins only sell back to the game, for a flat 100
+const gameValue = i => i.adm ? ADMIN_SELL : Math.max(1, Math.floor(i.v * SELL_RATE));
+const sellPrice = items => items.reduce((s,i)=>s + gameValue(i), 0);
 function sellToGame(ids){
   const a = me(); let gain = 0, n = 0;
-  a.inv = a.inv.filter(it => { if(!ids.has(it.id) || isProtected(it)) return true; gain += Math.max(1, Math.floor(it.v * SELL_RATE)); n++; const g = skinOf(it).w; if(a.guns[g] && a.guns[g].eq === it.id) a.guns[g].eq = null; return false; });
+  a.inv = a.inv.filter(it => { if(!ids.has(it.id) || isProtected(it)) return true; gain += gameValue(it); n++; const g = skinOf(it).w; if(a.guns[g] && a.guns[g].eq === it.id) a.guns[g].eq = null; return false; });
   if(n){ a.balance = capNum(a.balance + gain, MAX_BAL); save(); refresh(); bumpChips(); sfx.coin(); toast(`Sold ${n} skin${n>1?"s":""} for ${fmt(gain)} tokens`); armRender(); }
   return gain;
 }
@@ -2401,11 +2411,11 @@ function renderInv(){
   const best = a.inv.slice().sort((x,y)=>y.v-x.v)[0]; $("#invBest").textContent = best ? fmt(best.v) : "–";
   const eqIds = new Set(GUNS.map(g => a.guns[g] && a.guns[g].eq).filter(Boolean));
   $("#invGrid").innerHTML = list.length ? list.map(it=>itemHTML(it,"pickable" + (eqIds.has(it.id) ? " equipped" : ""))).join("") : `<p class="empty">${a.inv.length ? "No skins match these filters." : "No skins yet. Buy a gun, then open cases for its skins."}</p>`;
-  const commons = a.inv.filter(i => skinOf(i).r === "common" && !eqIds.has(i.id) && !isProtected(i));
+  const commons = a.inv.filter(i => skinOf(i).r === "common" && !eqIds.has(i.id) && !isProtected(i) && !i.adm);
   $("#sellCommons").disabled = !commons.length;
   $("#sellCommons").textContent = commons.length ? `Sell all ${commons.length} Commons for ${fmt(sellPrice(commons))}` : "No Commons to sell";
 }
-$("#sellCommons").onclick = () => { const a = me(), eqIds = new Set(GUNS.map(g => a.guns[g] && a.guns[g].eq).filter(Boolean)); sellToGame(new Set(a.inv.filter(i => skinOf(i).r === "common" && !eqIds.has(i.id) && !isProtected(i)).map(i=>i.id))); };
+$("#sellCommons").onclick = () => { const a = me(), eqIds = new Set(GUNS.map(g => a.guns[g] && a.guns[g].eq).filter(Boolean)); sellToGame(new Set(a.inv.filter(i => skinOf(i).r === "common" && !eqIds.has(i.id) && !isProtected(i) && !i.adm).map(i=>i.id))); };
 $("#invSort").onchange = renderInv; $("#invFilter").onchange = renderInv; $("#invGun").onchange = renderInv;
 $("#invGrid").addEventListener("click", e => { const el = e.target.closest(".itm"); if(el) openItem(el.dataset.id); });
 $("#gunRack").addEventListener("click", e => { const t = e.target.closest(".gun-tile"); if(!t) return; const g = t.dataset.gun; if(me().guns[g]) openGun(g); else { armTabTo("guns"); result("guns", `The ${WEAP[g].n} costs ${fmt(WEAP[g].price)} tokens.`, ""); } });
@@ -2596,7 +2606,7 @@ async function lock(ref){ try{ const l = await ref.acquire({ holder:onlineKey, t
 // ================= MARKET =================
 async function listItem(id, price){
   const a = me(), it = a.inv.find(x=>x.id===id);
-  if(!it) return; if(isProtected(it)) return toast(it.adm ? "Admin skins can't be sold" : "Unlock it or take it out of your vault first"); if(!(price >= 1)) return toast("Set a price of at least 1 token"); if(price > MAX_BAL) return toast(`The highest price allowed is ${fmt(MAX_BAL)}`);
+  if(!it) return; if(it.adm) return toast("Admin skins can only be sold to the game"); if(isProtected(it)) return toast("Unlock it or take it out of your vault first"); if(!(price >= 1)) return toast("Set a price of at least 1 token"); if(price > MAX_BAL) return toast(`The highest price allowed is ${fmt(MAX_BAL)}`);
   a.inv = a.inv.filter(x=>x.id!==id); if(a.guns[skinOf(it).w] && a.guns[skinOf(it).w].eq === id) a.guns[skinOf(it).w].eq = null; save(); await saveNow();
   try{ await NET.db.collection("market").add({ seller:onlineKey, sellerName:a.name, item:it, price, status:"open", t:Date.now() }); }
   catch(e){ a.inv.push(it); save(); return toast("Couldn't list that item. Try again."); }
@@ -2692,7 +2702,7 @@ function renderTrades(){
   $("#trIn").innerHTML = trIn.length ? trIn.slice().sort(byT).slice(0,15).map(t=>offer(t,true)).join("") : '<p class="empty">No trade offers yet.</p>';
   $("#trOut").innerHTML = trOut.length ? trOut.slice().sort(byT).slice(0,15).map(t=>offer(t,false)).join("") : '<p class="empty">You haven\'t sent any offers.</p>';
 }
-$("#trGive").addEventListener("click", e => { const el = e.target.closest(".itm"); if(!el) return; const id = el.dataset.id; const pit = me().inv.find(x=>x.id===id); if(pit && isProtected(pit)) return toast("That skin is locked or in your vault"); trGiveSel.has(id) ? trGiveSel.delete(id) : trGiveSel.add(id); sfx.click(); renderTrades(); });
+$("#trGive").addEventListener("click", e => { const el = e.target.closest(".itm"); if(!el) return; const id = el.dataset.id; const pit = me().inv.find(x=>x.id===id); if(pit && (isProtected(pit) || pit.adm)) return toast(pit.adm ? "Admin skins can't be traded" : "That skin is locked or in your vault"); trGiveSel.has(id) ? trGiveSel.delete(id) : trGiveSel.add(id); sfx.click(); renderTrades(); });
 $("#trWant").addEventListener("click", e => { const el = e.target.closest(".itm"); if(!el) return; const id = el.dataset.id; trWantSel.has(id) ? trWantSel.delete(id) : trWantSel.add(id); sfx.click(); renderTrades(); });
 $("#trSend").onclick = async () => {
   const a = me(), gc = Math.max(0, parseAmt($("#trGiveTokens").value)||0), wc = Math.max(0, parseAmt($("#trWantTokens").value)||0);
@@ -3392,7 +3402,7 @@ const AR = (() => {
     ctx = { scene, camera, D, diff, L, stats, explode, particle, shake, hitstop, slowmo, banner, dmgNum, setHp, setMid, setSub, snd, tracer, hud, end, kill:(e,w)=>kill(e,w), screenOf };
     game = GAMES_IMPL[id](ctx);
     ammo = L.mag; reloading = 0; bloom = 0; shotN = 0; paused = false; holdT = 0; stopUntil = 0; slowUntil = 0;
-    el("arMove").hidden = !game.movement; el("arDodge").hidden = !game.movement; el("arBoss").hidden = true; el("arCards").hidden = true; el("arLayer").innerHTML = "";
+    el("arMove").hidden = !game.movement; el("arDodge").hidden = !game.movement; el("arBoss").hidden = true; el("arBoss").querySelector("span").textContent = "WAR MACHINE"; el("arCards").hidden = true; el("arLayer").innerHTML = "";
     ending = false;
     attachViewGun();
     $("#app").classList.add("playing"); el("arenaPlay").hidden = false; el("pauseModal").hidden = true; el("arFps").hidden = !mem.adminTest;
@@ -3662,7 +3672,9 @@ GAMES_IMPL.defense = ctx => {
   function spawnRobot(kind){
     const K = KINDS[kind], g = makeRobot({ scale:K.s*1.3, color:K.color, trim:K.trim, eye:K.eye }); g.rotation.y = 0;
     g.position.set(laneX[randInt(3)] + (rand()-.5), 0, -52); scene.add(g);
-    const scale = (1 + wave*.12) * P.hp;
+    // enemies get tougher every wave, and each boss is far tougher than the last
+    const bossN = Math.floor(wave / 5), scale = (1 + wave*.18 + Math.pow(wave, 1.6)*.03) * P.hp * (kind === "boss" ? Math.pow(1.8, bossN - 1) * (1 + bossN*.3) : 1);
+    if(kind === "boss") g.scale.multiplyScalar(1 + Math.min(.6, (bossN - 1) * .12));
     const e = mkEnt(g, K.hp * scale, { kind, sp:K.sp * P.sp * (1 + wave*.02), dmg:K.dmg, pts:K.pts, cy:2.1*K.s, ph:rand()*6 });
     ents.push(e); if(kind === "boss"){ ctx.banner("BOSS INCOMING!", "red"); ctx.shake(.4); }
   }
@@ -3679,6 +3691,7 @@ GAMES_IMPL.defense = ctx => {
     ["⏩","Speed Loader","Reload 30% faster", () => ctx.L.rld *= .7]
   ];
   function offerCards(){
+    if(ended || document.getElementById("arenaPlay").hidden) return;
     choosing = true; const pick = CARDS.slice().sort(()=>rand()-.5).slice(0,3), box = document.getElementById("arCards");
     box.innerHTML = `<div class="cards-title">Wave ${wave} cleared! Pick an upgrade</div><div class="cards-row">${pick.map((c,i)=>`<button class="up-card" data-i="${i}"><span>${c[0]}</span><b>${c[1]}</b><small>${c[2]}</small></button>`).join("")}</div>`;
     box.hidden = false; ctx.snd("crit");
@@ -3696,9 +3709,9 @@ GAMES_IMPL.defense = ctx => {
     intro(){ hpBar(); nextWave(); },
     onFire(){ if(up.boom && rand() < up.boom){ const tgt = ents.filter(e=>e.alive).sort((a,b)=>b.root.position.z - a.root.position.z)[0]; if(tgt){ ctx.explode(tgt.pos(), "#ff7b3d"); ents.filter(e=>e.alive && e.pos().distanceTo(tgt.pos()) < 3.5).forEach(e => { const r = e.hit(L.dmg*.8, e.pos(), false); if(r.killed) ctx.kill(e,false); }); } } },
     onKill(e, weak){
-      const pts = Math.round(e.pts * (1 + wave*.08) * (weak ? 1.5 : 1)); ctx.stats.score += pts; ctx.dmgNum(e.pos().add(V3(0,.8,0)), pts, weak);
+      const pts = Math.round(e.pts * (1 + wave*.3 + Math.pow(wave, 1.5)*.05) * (weak ? 1.5 : 1)); ctx.stats.score += pts; ctx.dmgNum(e.pos().add(V3(0,.8,0)), pts, weak);
       ctx.explode(e.pos(), "#ff9b3d", e.kind === "boss" || e.kind === "heavy"); e.dead = 0;
-      if(e.kind === "boss"){ ctx.slowmo(1.2); ctx.banner("BOSS DESTROYED!", "gold"); ctx.stats.score += 1000*wave; }
+      if(e.kind === "boss"){ ctx.slowmo(1.2); ctx.banner("BOSS DESTROYED!", "gold"); ctx.stats.score += Math.round(1500 * wave * (1 + wave*.1)); }
       ctx.hud();
     },
     update(dt, realDt, input){
@@ -3707,6 +3720,8 @@ GAMES_IMPL.defense = ctx => {
       const p = document.getElementById("arenaPlay"), r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(input.aim.x/p.clientWidth*2-1, -(input.aim.y/p.clientHeight*2-1)), ctx.camera);
       const hit = r.ray.intersectPlane(new THREE.Plane(V3(0,1,0), 0), V3()); if(hit) hero.rotation.y = Math.atan2(-(hit.x - hero.position.x), -(hit.z - hero.position.z)) + Math.PI;
       if(toSpawn > 0){ spawnT -= dt; if(spawnT <= 0){ const r2 = rand(); spawnRobot(wave > 3 && r2 < .15 ? "heavy" : wave > 1 && r2 < .4 ? "runner" : "grunt"); toSpawn--; spawnT = Math.max(.35, 1.4 - wave*.06) * (.6 + rand()*.8); } }
+      const bossE = ents.find(e => e.kind === "boss" && e.alive), bb = document.getElementById("arBoss");
+      if(bossE){ bb.hidden = false; bb.querySelector("span").textContent = `WAVE ${wave} BOSS`; document.getElementById("arBossBar").style.width = Math.max(0, bossE.hp / bossE.max * 100) + "%"; } else bb.hidden = true;
       if(up.turret){ turretT -= dt; if(turretT <= 0){ turretT = 1 / up.turret; const tgt = ents.filter(e=>e.alive).sort((a,b)=>b.root.position.z - a.root.position.z)[0]; if(tgt){ const from = V3(-6, 3, 3); ctx.tracer(from, tgt.pos(), "#7fd6ff"); const rr = tgt.hit(L.dmg*.5*up.dmg, tgt.pos(), false); ctx.dmgNum(tgt.pos(), Math.round(L.dmg*.5*up.dmg), false); if(rr.killed) ctx.kill(tgt,false); } } }
       const t = AT();
       ents.slice().forEach(e => {
@@ -3717,7 +3732,7 @@ GAMES_IMPL.defense = ctx => {
           if(navigator.vibrate && mem.haptics !== false) try{ navigator.vibrate(60); }catch(err){}
           if(vaultHp <= 0 && !ended){ ended = true; ctx.slowmo(1); ctx.banner("VAULT BREACHED!", "red"); ctx.end({ wave }); } }
       });
-      if(!ended && toSpawn <= 0 && !ents.some(e=>e.alive)){ ctx.stats.score += 300 * wave; ctx.hud(); offerCards(); }
+      if(!ended && toSpawn <= 0 && !ents.some(e=>e.alive)){ const bonus = Math.round(300 * wave * (1 + wave*.15)); ctx.stats.score += bonus; ctx.banner(`WAVE CLEAR +${fmt(bonus)}`, "gold"); ctx.hud(); setTimeout(offerCards, 700); choosing = true; }
     }
   };
 };
@@ -4471,12 +4486,13 @@ function pityNote(){ const a = me(); if(!a) return ""; return `Lucky meter: ${a.
 const CHIME = { common:[523], rare:[523,659,784], mythic:[523,659,784,988,1175], legendary:[392,523,659,784,1047,1319,1568], gold:[392,523,659,784,1047,1319,1568] };
 function rarityChime(r){ (CHIME[r] || CHIME.common).forEach((f,i) => tone(f, .22, "triangle", .07, i*.07)); if(r === "legendary" || r === "gold") haptic([60,40,120]); else if(r === "mythic") haptic(50); }
 function toggleLock(id){ const it = me().inv.find(x=>x.id===id); if(!it) return; it.lk = it.lk ? 0 : 1; save(); sfx.click(); toast(it.lk ? "🔒 Locked. It can't be sold until you unlock it." : "Unlocked"); }
-const isProtected = it => !!it.lk || !!it.adm || me().vault.includes(it.id);
+const isProtected = it => !!it.lk || me().vault.includes(it.id);
 function itemExtras(it){
   if(it.n){ it.n = 0; saveSoon(3000); }
   const box = $("#imActions"), inV = me().vault.includes(it.id);
   box.insertAdjacentHTML("afterbegin", `<div class="actions extra-acts"><button class="btn small ghost" id="imInspect">🔍 Inspect in 3D</button><button class="btn small ghost" id="imLock">${it.lk ? "🔓 Unlock" : "🔒 Lock"}</button><button class="btn small ghost" id="imVault">${inV ? "Remove from vault" : "🏛️ Put in vault"}</button></div>`);
-  if(isProtected(it)){ const sb = $("#imSellGame"); if(sb){ sb.disabled = true; sb.textContent = it.adm ? "Admin skin · can't be sold" : it.lk ? "Locked · unlock to sell" : "On display in your vault"; } const lb = $("#imList"); if(lb) lb.disabled = true; }
+  if(isProtected(it)){ const sb = $("#imSellGame"); if(sb){ sb.disabled = true; sb.textContent = it.lk ? "Locked · unlock to sell" : "On display in your vault"; } const lb = $("#imList"); if(lb) lb.disabled = true; }
+  if(it.adm){ const lb = $("#imList"); if(lb){ lb.disabled = true; lb.textContent = "Admin skin"; } }
   $("#imInspect").onclick = () => { $("#itemModal").hidden = true; openInspect(it); };
   $("#imLock").onclick = () => { toggleLock(it.id); openItem(it.id); armRender(); };
   $("#imVault").onclick = () => { const a = me(); const i = a.vault.indexOf(it.id);
