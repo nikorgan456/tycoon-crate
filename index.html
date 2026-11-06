@@ -860,6 +860,12 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 .rank-row{grid-template-columns:34px minmax(0,1fr) auto}
 .rk-n span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .page-inner{width:100%;min-width:0}
+.ban-panel input{width:100%;border:2px solid var(--edge);border-radius:14px;padding:11px 12px;font-weight:700;background:#fff}
+.ban-dur{display:flex;flex-direction:column;gap:3px}.ban-dur small{font-weight:800;color:var(--muted);min-height:1.1em}
+.ban-chips button{padding:6px 11px;font-size:.85rem}
+.ban-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.ban-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n b" "s b";gap:0 8px;align-items:center;border:2px solid var(--edge);border-radius:14px;padding:7px 10px}
+.ban-row b{grid-area:n;overflow:hidden;text-overflow:ellipsis}.ban-row small{grid-area:s;color:var(--muted);font-weight:700}.ban-row .btn{grid-area:b}
 </style>
 </head>
 <body>
@@ -1292,6 +1298,7 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
       <button class="btn purple" id="adminOpen">🎁 Get any skin</button>
       <button class="btn ghost" id="testerBtn">🧪 Tester mode: off</button>
       <button class="btn gold" id="stashEndBtn">🏦 End the Stash round now</button>
+      <button class="btn coral" id="banOpenBtn">🔨 Ban players</button>
     </div>
     <button class="btn ghost small" data-close>Close</button>
   </div>
@@ -2598,7 +2605,7 @@ function httpDB(){
   async function call(body){
     const r = await fetch("/api/db", { method:"POST", headers: Object.assign({ "content-type":"application/json" }, token ? { "x-vr-token":token } : {}), body: JSON.stringify(body) });
     const j = await r.json().catch(()=>({}));
-    if(!r.ok) throw { code: j.code || "unavailable", message: j.error || ("HTTP " + r.status) };
+    if(!r.ok){ if(j.code === "banned") dispatchEvent(new CustomEvent("mr-banned", { detail:j.error })); throw { code: j.code || "unavailable", message: j.error || ("HTTP " + r.status) }; }
     return j;
   }
   const snap = (id, data) => ({ id, exists: !!data, data: () => data ? clone(data) : undefined, metadata:{ fromCache:false, hasPendingWrites:false } });
@@ -4923,7 +4930,7 @@ $("#pwSave").onclick = async () => {
 function adminOptsUI(){
   $("#adminOpts").hidden = !mem.isAdmin;
   $("#adminOpen").hidden = true; $("#stashEndBtn").hidden = !mem.isAdmin; $("#stashEndBtn").textContent = "🏦 End the Stash round now"; $("#stashEndBtn").dataset.sure = "";
-  $("#testerBtn").hidden = !mem.isAdmin;
+  $("#testerBtn").hidden = !mem.isAdmin; $("#banOpenBtn").hidden = !mem.isAdmin;
   $("#testerBtn").textContent = `🧪 Tester mode: ${mem.adminTest ? "on" : "off"}`;
 }
 $("#adminBtn").onclick = () => { sfx.click(); $("#codeRes").textContent = ""; $("#adminCode").value = ""; adminOptsUI(); $("#codeModal").hidden = false; setTimeout(() => $("#adminCode").focus(), 50); };
@@ -4933,6 +4940,7 @@ $("#adminGo").onclick = () => {
   r.textContent = "Wrong code"; r.className = "result lose"; sfx.lose();
 };
 $("#adminCode").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); $("#adminGo").click(); } });
+$("#banOpenBtn").onclick = () => openBan("");
 $("#testerBtn").onclick = () => { mem.adminTest = !mem.adminTest; saveLocal(); adminOptsUI(); renderMeExtras(); sfx.click(); toast(mem.adminTest ? "Tester mode on: all difficulties unlocked + FPS" : "Tester mode off"); };
 
 // ---------- cases extras: pity, collection, NEW, lock, vault tab ----------
@@ -5326,7 +5334,7 @@ $("#chatMsgs").addEventListener("click", e => {
   const who = nm.querySelector("[data-who]"), key = who.dataset.who, name = who.dataset.nm, id = nm.dataset.m, mine = key === onlineKey;
   const muted = mutes[key] > Date.now();
   pop.innerHTML = `<b>${esc(name)}</b>${mine ? "" : `<button data-pa="dm">✉️ Message privately</button>`}${mine ? `<button data-pa="del">🗑️ Delete my message</button>` : ""}
-    ${mem.isAdmin && !mine ? `<button data-pa="adel">🛠️ Delete message</button>${muted ? `<button data-pa="unmute">🔊 Unmute</button>` : `<button data-pa="m60">🔇 Mute 1 hour</button><button data-pa="m1440">🔇 Mute 1 day</button>`}` : ""}<button data-pa="x">Cancel</button>`;
+    ${mem.isAdmin && !mine ? `<button data-pa="adel">🛠️ Delete message</button>${muted ? `<button data-pa="unmute">🔊 Unmute</button>` : `<button data-pa="m60">🔇 Mute 1 hour</button><button data-pa="m1440">🔇 Mute 1 day</button>`}<button data-pa="ban">🔨 Ban…</button>` : ""}<button data-pa="x">Cancel</button>`;
   pop.hidden = false; pop.dataset.key = key; pop.dataset.name = name; pop.dataset.id = id;
 });
 $("#chatPop").addEventListener("click", async e => {
@@ -5336,6 +5344,7 @@ $("#chatPop").addEventListener("click", async e => {
     else if(act === "del"){ await NET.db.doc("chat/" + id).delete(); toast("Deleted"); }
     else if(act === "adel"){ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"delete", id }); toast("Message deleted"); }
     else if(act === "m60" || act === "m1440"){ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"mute", target:key, minutes:+act.slice(1) }); toast(`${name} is muted`); loadMutes(); }
+    else if(act === "ban"){ openBan(name); }
     else if(act === "unmute"){ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"unmute", target:key }); toast(`${name} can chat again`); loadMutes(); }
   }catch(err){ toast(err && err.message || "That didn't work"); }
 });
@@ -5343,6 +5352,74 @@ $("#chatPop").addEventListener("click", async e => {
 function chatVis(){ const show = !$("#app").hidden && !$("#app").classList.contains("playing") && $("#showroom").hidden && $("#chatPanel").hidden; $("#chatBtn").hidden = !show; }
 setInterval(chatVis, 500);
 setInterval(loadMutes, 60000);
+// ===================== ADMIN: BAN PLAYERS FOR ANY LENGTH OF TIME =====================
+const BAN_FOREVER = 8.64e15;
+// "30m", "2h", "3d", "2w", "6mo", "1y", "forever", or a plain number of minutes
+function parseDur(v){
+  const s = String(v || "").trim().toLowerCase().replace(/[\s,]+|and/g, "");
+  if(!s) return NaN; if(/^(forever|perm|permanent|always|never|inf)$/.test(s)) return 0;
+  const re = /(\d*\.?\d+)(months?|mo|minutes?|mins?|m|hours?|hrs?|hr|h|days?|d|weeks?|wks?|w|years?|yrs?|y)?/gy, U = { mo:43200, mi:1, m:1, h:60, d:1440, w:10080, y:525600 };
+  let total = 0, m, used = 0;
+  while(used < s.length && (m = re.exec(s))){ if(!m[0]) break; used = re.lastIndex; const u = m[2] || "m"; total += parseFloat(m[1]) * (u.startsWith("mo") ? U.mo : u.startsWith("mi") ? 1 : U[u[0]]); }
+  return used === s.length && total > 0 ? total : NaN;
+}
+function durText(mins){ if(!mins) return "forever"; const parts = [[525600,"year"],[43200,"month"],[10080,"week"],[1440,"day"],[60,"hour"],[1,"minute"]];
+  for(const [m, n] of parts) if(mins >= m){ const v = Math.round(mins/m*10)/10; return `${v} ${n}${v === 1 ? "" : "s"}`; } return `${mins} minutes`; }
+const untilText = u => u >= BAN_FOREVER ? "forever" : "until " + new Date(u).toLocaleString("en-GB", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+document.body.insertAdjacentHTML("beforeend", `
+<div class="modal" id="banModal" hidden><div class="panel ban-panel">
+  <div class="shop-top"><h2>🔨 Ban a player</h2><button class="shop-x" data-bclose aria-label="Close">✕</button></div>
+  <input id="banUser" placeholder="Username" autocomplete="off" maxlength="20" aria-label="Username">
+  <div class="ban-dur"><input id="banDur" placeholder="How long? e.g. 30m, 2h, 3d, 2w, 6mo, forever" autocomplete="off" aria-label="Ban length"><small id="banDurTxt"></small></div>
+  <div class="chip-grid ban-chips">${["10m","1h","12h","1d","3d","1w","1mo","1y","forever"].map(d => `<button data-bd="${d}">${d === "forever" ? "Forever" : d}</button>`).join("")}</div>
+  <div class="actions"><button class="btn coral" id="banGo">Ban</button><button class="btn ghost" id="unbanGo">Unban</button></div>
+  <div class="result" id="banRes"></div>
+  <div class="label">Banned right now</div><div id="banList" class="ban-list"></div>
+</div></div>`);
+$("#banModal").addEventListener("click", e => { if(e.target.id === "banModal" || e.target.closest("[data-bclose]")) $("#banModal").hidden = true; });
+function banDurUI(){ const m = parseDur($("#banDur").value); $("#banDurTxt").textContent = isNaN(m) ? ($("#banDur").value ? "Try 30m, 2h, 3d, 2w, 6mo, 1y or forever" : "") : `= ${durText(m)}`; }
+$("#banDur").addEventListener("input", banDurUI);
+$("#banModal .ban-chips").addEventListener("click", e => { const b = e.target.closest("[data-bd]"); if(!b) return; $("#banDur").value = b.dataset.bd; banDurUI(); sfx.click(); });
+async function renderBans(){
+  const box = $("#banList"); if(!ONLINE || !NET.db || !NET.db.call){ box.innerHTML = `<p class="empty" style="margin:0">Bans need online play.</p>`; return; }
+  try{ const bans = (await NET.db.call({ op:"bans" })).bans || {}, keys = Object.keys(bans).sort((x, y) => bans[x] - bans[y]);
+    box.innerHTML = keys.length ? keys.map(k => `<div class="ban-row"><b>${esc(k)}</b><small>${untilText(bans[k])}</small><button class="btn small ghost" data-unban="${esc(k)}">Unban</button></div>`).join("") : `<p class="empty" style="margin:0">Nobody is banned.</p>`;
+  }catch(e){ box.innerHTML = `<p class="empty" style="margin:0">Couldn't load the list.</p>`; }
+}
+$("#banList").addEventListener("click", async e => { const b = e.target.closest("[data-unban]"); if(!b) return; b.disabled = true; await doUnban(b.dataset.unban); });
+function openBan(name){
+  if(!mem.isAdmin) return toast("Admins only");
+  if(!ONLINE) return toast("Bans need online play");
+  $$(".modal:not([data-lock])").forEach(m => m.hidden = true);
+  $("#banUser").value = name || ""; $("#banDur").value = ""; banDurUI(); $("#banRes").textContent = ""; $("#banModal").hidden = false; renderBans();
+}
+async function banKey(name){ const p = typeof findPlayer === "function" ? await findPlayer(name) : null; return p ? p.key : String(name || "").trim().toLowerCase(); }
+$("#banGo").onclick = async () => {
+  const r = $("#banRes"), name = $("#banUser").value.trim(), mins = parseDur($("#banDur").value);
+  if(!name){ r.textContent = "Type a username"; r.className = "result lose"; return; }
+  if(isNaN(mins)){ r.textContent = "Type how long, like 30m, 2h, 3d or forever"; r.className = "result lose"; return; }
+  const key = await banKey(name); if(key === onlineKey){ r.textContent = "You can't ban yourself"; r.className = "result lose"; return; }
+  try{ const res = await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"ban", target:key, minutes:mins });
+    r.textContent = `${name} is banned ${untilText(res.until || BAN_FOREVER)}`; r.className = "result win"; sfx.click(); renderBans(); }
+  catch(e){ r.textContent = (e && e.message) || "Couldn't ban them"; r.className = "result lose"; }
+};
+async function doUnban(name){ const r = $("#banRes"); try{ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"unban", target:await banKey(name) }); r.textContent = `${name} can play again`; r.className = "result win"; sfx.click(); }
+  catch(e){ r.textContent = (e && e.message) || "Couldn't unban them"; r.className = "result lose"; } renderBans(); }
+$("#unbanGo").onclick = () => { const name = $("#banUser").value.trim(); if(!name){ $("#banRes").textContent = "Type a username"; $("#banRes").className = "result lose"; return; } doUnban(name); };
+// the banned player gets thrown out to the login screen
+let banKicked = false;
+function banKick(msg){
+  if(banKicked || !ONLINE) return; banKicked = true;
+  try{ if(AR.running) AR.quit(); }catch(e){}
+  $$(".modal").forEach(m => m.hidden = true);
+  stopOnline(); if(NET.db && NET.db.signout) NET.db.signout(); ONLINE = false; onlineAcc = null; onlineKey = null; try{ localStorage.removeItem(KEY+"_online"); }catch(e){}
+  mem.current = null; saveLocal(); try{ factoryStop(); }catch(e){}
+  $("#app").hidden = true; $("#auth").hidden = false; $("#pass").value = ""; setMode("login");
+  setTimeout(() => { $("#authErr").textContent = msg || "You've been banned."; banKicked = false; }, 50);
+}
+addEventListener("mr-banned", e => banKick(e.detail));
+setInterval(async () => { if(!ONLINE || !onlineKey || !NET.db || !NET.db.call || document.hidden) return;
+  try{ const bans = (await NET.db.call({ op:"bans" })).bans || {}; if(bans[onlineKey]) banKick(bans[onlineKey] >= BAN_FOREVER ? "You've been banned from Mint Rush." : `You're banned ${untilText(bans[onlineKey])}.`); }catch(e){} }, 20000);
 // ===================== SHOWROOM: personal vault (3D) + skin inspect =====================
 const SR = (() => {
   let renderer = null, scene = null, camera = null, raf = 0, mode = null, last = 0, ray = null;

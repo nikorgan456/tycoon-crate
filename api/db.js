@@ -59,6 +59,9 @@ async function pruneChat() {
   if (old.length) await redis([["HDEL", P + "chat", ...old]]);
 }
 
+const FOREVER = 8.64e15;
+const banMsg = until => until >= FOREVER ? "You've been banned from Mint Rush." : `You're banned until ${new Date(until).toLocaleString("en-GB", { timeZone:"Europe/London", day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })} (UK time).`;
+async function banOf(key){ const [v] = await redis([["HGET", P + "bans", key]]); const until = +v || 0; return until > Date.now() ? until : 0; }
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   if (!RURL || !RTOK) {
@@ -90,11 +93,13 @@ module.exports = async (req, res) => {
       if (!raw) return res.status(200).json({ error: `No player called "${b.key}" yet. Sign up first.` });
       const acc = parse(raw);
       if (!acc || acc.ph !== b.ph) return res.status(200).json({ error: "That password doesn't match. Check it and try again." });
+      { const until = await banOf(b.key); if (until) return res.status(200).json({ error: banMsg(until), banned: until }); }
       return res.status(200).json({ token: await newSession(b.key), account: strip(acc) });
     }
     if (op === "resume") {
       const k = await who();
       if (!k || k !== b.key) return res.status(200).json({ error: "Session expired. Log in again." });
+      { const until = await banOf(k); if (until) return res.status(200).json({ error: banMsg(until), banned: until }); }
       const [raw] = await redis([["HGET", P + "players", k]]);
       return res.status(200).json(raw ? { account: strip(parse(raw)) } : { error: "Account not found." });
     }
@@ -121,6 +126,11 @@ module.exports = async (req, res) => {
       return res.status(200).json({ results });
     }
 
+    if (op === "bans") {
+      const [m] = await redis([["HGETALL", P + "bans"]]);
+      const out = {}; for (let i = 0; i < (m || []).length; i += 2) { const until = +m[i + 1]; if (until > Date.now()) out[m[i]] = until; }
+      return res.status(200).json({ bans: out });
+    }
     if (op === "mutes") {
       const [m] = await redis([["HGETALL", P + "mutes"]]);
       const out = {}; for (let i = 0; i < (m || []).length; i += 2) { const until = +m[i + 1]; if (until > Date.now()) out[m[i]] = until; }
@@ -130,12 +140,16 @@ module.exports = async (req, res) => {
     // ---------- writes (need a logged-in session) ----------
     const k = await who();
     if (!k) fail(403, "Log in again to keep playing online.");
+    if (op !== "admin") { const until = await banOf(k); if (until) fail(403, banMsg(until), "banned"); }
 
     // ---------- admin: delete chat messages, mute and unmute players ----------
     if (op === "admin") {
       if (!isAdminCode(b.code)) fail(403, "Wrong admin code.");
       if (b.action === "delete") { const [, id] = splitPath("chat/" + b.id); await redis([["HDEL", P + "chat", id]]); return res.status(200).json({ ok: true }); }
       if (b.action === "mute") { if (!validKey(b.target)) fail(400, "Bad player"); const mins = Math.max(1, Math.min(60 * 24 * 30, +b.minutes || 60)); await redis([["HSET", P + "mutes", b.target, String(Date.now() + mins * 60000)]]); return res.status(200).json({ ok: true }); }
+      if (b.action === "ban") { if (!validKey(b.target)) fail(400, "Bad player"); const mins = +b.minutes; const until = !(mins > 0) ? FOREVER : Date.now() + Math.min(mins, 60 * 24 * 365 * 100) * 60000;
+        await redis([["HSET", P + "bans", b.target, String(until)]]); return res.status(200).json({ ok: true, until }); }
+      if (b.action === "unban") { await redis([["HDEL", P + "bans", String(b.target || "")]]); return res.status(200).json({ ok: true }); }
       if (b.action === "unmute") { await redis([["HDEL", P + "mutes", String(b.target || "")]]); return res.status(200).json({ ok: true }); }
       fail(400, "Unknown admin action");
     }
