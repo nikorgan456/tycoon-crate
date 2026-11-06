@@ -184,6 +184,8 @@ module.exports = async (req, res) => {
           const [mu] = await redis([["HGET", P + "mutes", k]]);
           if (mu && +mu > Date.now()) fail(403, "You're muted for now.");
           if (!b.data || b.data.from !== k || typeof b.data.text !== "string" || !b.data.text.trim() || b.data.text.length > 240) fail(400, "Bad message");
+          if (b.data.to === "all" && !isAdminCode(b.data.code)) fail(403, "Only admins can post in Everyone chat.");
+          delete b.data.code;
         }
       }
       const [raw] = await redis([["HGET", P + c, id]]);
