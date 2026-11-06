@@ -7,7 +7,11 @@ const envFind = (re, skip) => { const k = Object.keys(process.env).find(n => re.
 const RURL = envFind(/(KV_REST_API_URL|REDIS_REST_URL|REST_API_URL)$/);
 const RTOK = envFind(/(KV_REST_API_TOKEN|REDIS_REST_TOKEN|REST_API_TOKEN)$/, /READ_ONLY/);
 const P = "mr:";
-const COLS = new Set(["players", "market", "trades", "duels"]);
+const COLS = new Set(["players", "market", "trades", "duels", "chat"]);
+// admin code is checked by its SHA-256 so the plain code isn't in this file
+const ADMIN_HASH = "39b473bdd8d11d8203c3049066937de12ec3a6f8abc60ef7daddb82bc191c813";
+const sha256 = s => crypto.createHash("sha256").update(String(s)).digest("hex");
+const isAdminCode = c => typeof c === "string" && sha256("mr-admin:" + c) === ADMIN_HASH;
 const SESSION_SECONDS = 60 * 60 * 24 * 90;
 
 async function redis(cmds) {
@@ -43,6 +47,16 @@ async function prune(col) {
     if (d && d.status !== "pending" && (d.doneAt || d.t || 0) < cutoff) old.push(arr[i]);
   }
   if (old.length) await redis([["HDEL", P + col, ...old]]);
+}
+
+async function pruneChat() {
+  // keep the newest 400 messages
+  const [arr] = await redis([["HGETALL", P + "chat"]]);
+  const list = []; for (let i = 0; i < (arr || []).length; i += 2) { const m = parse(arr[i + 1]); list.push({ id: arr[i], t: (m && m.t) || 0 }); }
+  if (list.length <= 450) return;
+  list.sort((a, b) => b.t - a.t);
+  const old = list.slice(400).map(x => x.id);
+  if (old.length) await redis([["HDEL", P + "chat", ...old]]);
 }
 
 module.exports = async (req, res) => {
@@ -107,9 +121,54 @@ module.exports = async (req, res) => {
       return res.status(200).json({ results });
     }
 
+    if (op === "mutes") {
+      const [m] = await redis([["HGETALL", P + "mutes"]]);
+      const out = {}; for (let i = 0; i < (m || []).length; i += 2) { const until = +m[i + 1]; if (until > Date.now()) out[m[i]] = until; }
+      return res.status(200).json({ mutes: out });
+    }
+
     // ---------- writes (need a logged-in session) ----------
     const k = await who();
     if (!k) fail(403, "Log in again to keep playing online.");
+
+    // ---------- admin: delete chat messages, mute and unmute players ----------
+    if (op === "admin") {
+      if (!isAdminCode(b.code)) fail(403, "Wrong admin code.");
+      if (b.action === "delete") { const [, id] = splitPath("chat/" + b.id); await redis([["HDEL", P + "chat", id]]); return res.status(200).json({ ok: true }); }
+      if (b.action === "mute") { if (!validKey(b.target)) fail(400, "Bad player"); const mins = Math.max(1, Math.min(60 * 24 * 30, +b.minutes || 60)); await redis([["HSET", P + "mutes", b.target, String(Date.now() + mins * 60000)]]); return res.status(200).json({ ok: true }); }
+      if (b.action === "unmute") { await redis([["HDEL", P + "mutes", String(b.target || "")]]); return res.status(200).json({ ok: true }); }
+      fail(400, "Unknown admin action");
+    }
+
+    // ---------- change your username (moves the whole account) ----------
+    if (op === "rename") {
+      const nk = b.newKey;
+      if (!validKey(nk)) fail(400, "Usernames are 3-20 letters, numbers or underscores.");
+      if (nk === k) fail(400, "That's already your username.");
+      const [raw] = await redis([["HGET", P + "players", k]]);
+      const acc = raw ? parse(raw) : null;
+      if (!acc) fail(400, "Account not found.");
+      if (acc.ph !== b.oldPh) fail(403, "That password doesn't match.");
+      if (typeof b.newPh !== "string" || b.newPh.length < 32) fail(400, "Bad password details.");
+      Object.assign(acc, { key: nk, name: String(b.newName || nk).slice(0, 20), ph: b.newPh, aliases: [...new Set([...(acc.aliases || []), k])].slice(-5) });
+      const [ok] = await redis([["HSETNX", P + "players", nk, JSON.stringify(acc)]]);
+      if (!ok) return res.status(200).json({ error: "That username is taken." });
+      await redis([["HDEL", P + "players", k], ["SET", P + "tok:" + token, nk, "EX", SESSION_SECONDS]]);
+      // point everything that mentioned the old name at the new one
+      const fields = ["seller", "buyer", "from", "to", "winner", "company"];
+      const cols = ["market", "trades", "duels", "chat", "players"];
+      const all = await redis(cols.map(c => ["HGETALL", P + c]));
+      const writes = [];
+      cols.forEach((c, ci) => { const arr = all[ci] || [];
+        for (let i = 0; i < arr.length; i += 2) { const doc = parse(arr[i + 1]); if (!doc) continue; let ch = false;
+          fields.forEach(f => { if (doc[f] === k) { doc[f] = nk; ch = true; } });
+          if (doc.holdings && doc.holdings[k] !== undefined) { doc.holdings[nk] = (doc.holdings[nk] || 0) + doc.holdings[k]; delete doc.holdings[k]; ch = true; }
+          if (c === "chat" && doc.from === nk && b.newName) { doc.fromName = String(b.newName).slice(0, 20); ch = true; }
+          if (ch) writes.push(["HSET", P + c, arr[i], JSON.stringify(doc)]); } });
+      const [mu] = await redis([["HGET", P + "mutes", k]]); if (mu) writes.push(["HSET", P + "mutes", nk, mu], ["HDEL", P + "mutes", k]);
+      for (let i = 0; i < writes.length; i += 50) await redis(writes.slice(i, i + 50));
+      return res.status(200).json({ ok: true, account: strip(acc) });
+    }
     if (op === "acquire") {
       const [c, id] = splitPath(b.path);
       const ttl = Math.max(1000, Math.min(60000, +b.ttlMs || 30000));
@@ -119,11 +178,20 @@ module.exports = async (req, res) => {
     if (op === "set" || op === "update" || op === "delete") {
       const [c, id] = splitPath(b.path);
       if (c === "players" && id !== k) fail(403, "You can only change your own account.");
+      if (c === "chat") {
+        if (op === "update") fail(403, "Messages can't be edited.");
+        if (op === "set") {
+          const [mu] = await redis([["HGET", P + "mutes", k]]);
+          if (mu && +mu > Date.now()) fail(403, "You're muted for now.");
+          if (!b.data || b.data.from !== k || typeof b.data.text !== "string" || !b.data.text.trim() || b.data.text.length > 240) fail(400, "Bad message");
+        }
+      }
       const [raw] = await redis([["HGET", P + c, id]]);
       const cur = raw ? parse(raw) : null;
       if (op === "delete") {
         if (c === "players") fail(403, "Accounts can't be deleted here.");
         if (c === "market" && cur && cur.seller !== k) fail(403, "Only the seller can remove a listing.");
+        if (c === "chat" && cur && cur.from !== k && !isAdminCode(b.code)) fail(403, "You can only delete your own messages.");
         await redis([["HDEL", P + c, id]]);
         return res.status(200).json({ ok: true });
       }
@@ -138,6 +206,7 @@ module.exports = async (req, res) => {
       const s = JSON.stringify(data); if (s.length > 250000) fail(400, "Too large");
       await redis([["HSET", P + c, id, s]]);
       if (!cur && (c === "trades" || c === "duels") && Math.random() < 0.05) prune(c).catch(() => {});
+      if (!cur && c === "chat" && Math.random() < 0.1) pruneChat().catch(() => {});
       return res.status(200).json({ ok: true });
     }
     fail(400, "Unknown request");

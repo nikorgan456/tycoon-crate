@@ -775,6 +775,34 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 #sheetBody button *{pointer-events:none}
 .lift-btn{top:62px}
 .track-area{grid-template-columns:repeat(3,1fr)!important;width:100%!important}
+/* chat */
+.chat-btn{position:fixed;right:max(12px, env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:18;width:52px;height:52px;border-radius:50%;border:0;background:linear-gradient(160deg,#9b5de5,#6a3fc0);color:#fff;font-size:1.4rem;box-shadow:0 5px 0 #4a2a90,0 8px 16px rgba(0,0,0,.25)}
+.chat-btn .badge{top:-4px;right:-4px}
+.chat-panel{position:fixed;right:max(10px, env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:19;width:min(380px, calc(100vw - 20px));height:min(520px, calc(100dvh - 150px));background:#fff;border-radius:22px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;animation:chatin .22s ease-out}
+@keyframes chatin{from{transform:translateY(20px) scale(.96);opacity:0}}
+.chat-head{display:flex;align-items:center;gap:8px;padding:10px 10px 8px;background:linear-gradient(180deg,#f4ecff,#fff)}
+.chat-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:1}
+.chat-tabs button{border:0;border-radius:12px;padding:8px 4px;font-weight:900;font-size:.82rem;background:#efe8fb;color:var(--muted);position:relative}
+.chat-tabs button[aria-pressed=true]{background:var(--purple);color:#fff}
+.chat-tabs .badge{top:-5px;right:-3px}
+.chat-x{border:0;background:#f1f1f6;border-radius:10px;width:34px;height:34px;font-weight:900}
+.chat-sub{display:flex;align-items:center;gap:8px;padding:0 10px 6px}
+.chat-msgs{flex:1;overflow-y:auto;padding:6px 12px 10px;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
+.cm{background:#f4f6fb;border-radius:14px 14px 14px 4px;padding:6px 10px;max-width:85%;align-self:flex-start;cursor:pointer}
+.cm.mine{align-self:flex-end;background:#ece2ff;border-radius:14px 14px 4px 14px}
+.cm-top{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.cm-name{font-size:.78rem;color:var(--purple-d)}
+.cm-name i{font-style:normal;font-size:.66rem;background:#fff4d6;color:#8a5a00;border-radius:6px;padding:0 5px}
+.cm-top small{font-size:.62rem;color:var(--muted)}
+.cm-text{font-size:.9rem;word-wrap:break-word;overflow-wrap:anywhere}
+.chat-in{display:flex;gap:6px;padding:8px 10px 10px;border-top:2px solid #f0eef6}
+.chat-in input{flex:1;min-width:0;border:2px solid var(--edge);border-radius:12px;padding:9px 10px;background:#f7f9fd}
+.dm-row{display:grid;grid-template-columns:1fr auto;grid-template-areas:"n b" "s b";text-align:left;border:0;background:#f4f6fb;border-radius:12px;padding:8px 10px;gap:0 8px;align-items:center}
+.dm-row b{grid-area:n} .dm-row small{grid-area:s;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .dm-row .badge{grid-area:b}
+.chat-pop{position:absolute;left:12px;right:12px;bottom:62px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.chat-pop button{border:0;background:#f4f6fb;border-radius:10px;padding:10px;font-weight:800;text-align:left}
+.chat-pop b{padding:2px 4px}
+#app.playing ~ .chat-btn{display:none}
 </style>
 </head>
 <body>
@@ -1050,6 +1078,9 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
       <div class="set-card">
         <div class="set-head">👤 Account</div>
         <div class="set-line col"><div><b>Username</b><small id="accName">–</small></div><div class="online-pill" id="meNet"><i></i><span>Online</span></div></div>
+        <div class="set-line col"><div><b>Change username</b><small>Your login changes too. Everything you own comes with you.</small></div>
+          <div class="pw-change"><input id="rnName" placeholder="New username" autocomplete="off" maxlength="20"><input type="password" id="rnPass" placeholder="Your password"><button class="btn small" id="rnGo">Change</button></div>
+          <small class="result" id="rnRes"></small></div>
         <div class="set-line col"><div><b>Password</b><small id="pwNote">Your password is never saved anywhere, only a scrambled version of it, so the game can't show it to you. Use the 👁 button on the login screen to check what you're typing.</small></div>
           <div id="pwChange" hidden class="pw-change"><input type="password" id="pwNew" placeholder="New password (4+ characters)" autocomplete="new-password"><button class="eye" type="button" data-eye="pwNew" aria-label="Show password">👁</button><button class="btn small" id="pwSave">Change password</button></div>
           <small class="result" id="pwRes"></small></div>
@@ -1216,6 +1247,29 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
     <div class="inv-tools"><select id="adCrate" aria-label="Crate"></select><select id="adGun" aria-label="Gun"></select><select id="adWear" aria-label="Wear"></select></div>
     <div class="inv-grid" id="adGrid"></div>
     <div class="result" id="adRes"></div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<button class="chat-btn" id="chatBtn" aria-label="Chat" hidden>💬<span class="badge" id="chatBadge" hidden>0</span></button>
+<div class="chat-panel" id="chatPanel" hidden>
+  <div class="chat-head"><div class="chat-tabs" id="chatTabs"><button data-ct="global" aria-pressed="true">🌍 Everyone</button><button data-ct="dms" aria-pressed="false">✉️ Messages<span class="badge" id="dmBadge" hidden>0</span></button></div><button class="chat-x" id="chatClose" aria-label="Close chat">✕</button></div>
+  <div class="chat-sub" id="chatSub" hidden><button class="btn small ghost" id="dmBack">← Back</button><b id="dmWith"></b></div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-in" id="chatInRow"><input id="chatIn" maxlength="200" placeholder="Say something…" autocomplete="off"><button class="btn" id="chatSend">Send</button></div>
+  <div class="chat-pop" id="chatPop" hidden></div>
+</div>
+
+<!-- FORCED RENAME -->
+<div class="modal" id="nameModal" data-lock hidden>
+  <div class="panel" style="text-align:center;align-items:center">
+    <div style="font-size:2.6rem;line-height:1">✏️</div>
+    <h2>New username needed</h2>
+    <p class="muted" style="margin:0">Your username has a swear word in it. Pick a new one to keep playing. You keep everything you own.</p>
+    <input id="fnName" placeholder="New username" autocomplete="off" maxlength="20" style="width:100%">
+    <input type="password" id="fnPass" placeholder="Your password" style="width:100%">
+    <button class="btn gold" id="fnGo" style="width:100%">Save my new name</button>
+    <div class="result" id="fnRes"></div>
   </div>
 </div>
 
@@ -1396,6 +1450,7 @@ async function authInner(){
   const u = $("#user").value.trim(), p = $("#pass").value, err = $("#authErr");
   if(!/^[A-Za-z0-9_]{3,20}$/.test(u)) return err.textContent = "Username must be 3–20 letters, numbers or underscores.";
   if(p.length < 4) return err.textContent = "Password must be at least 4 characters.";
+  if(mode === "signup" && isBadName(u)) return err.textContent = "Pick a username without swear words.";
   const key = u.toLowerCase(), ph = await sha(key+":"+p);
   if(NET.db) return onlineAuth(u, key, ph);
   if(mode === "signup"){
@@ -1433,7 +1488,7 @@ function enter(){
   if(ONLINE) startOnline();
   netUI();
   $("#auth").hidden = true; $("#app").hidden = false;
-  refresh(); factoryStart(); showView("factory"); checkStreak(); arenaBadge();
+  refresh(); factoryStart(); showView("factory"); checkStreak(); arenaBadge(); checkBadName();
   { const a = me(); if(a._wipeMsg){ const w = a._wipeMsg; delete a._wipeMsg; save(); setTimeout(() => toast(`Go Public shares were reset for everyone (yours: ${fmtBig(w.lost)}). Sorry gift: +${fmt(w.gift)} tokens`), 2500); } }
   if(!storageOK) setTimeout(()=>toast("This browser blocks saved data, so progress resets when you close the page."), 900);
 }
@@ -2514,7 +2569,7 @@ function httpDB(){
     onSnapshot(next){ const x = { q:{ col, where, limit:lim }, next, last:null }; subs.add(x); kick(); return () => subs.delete(x); }
   });
   const collection = col => Object.assign(query(col), { path: col, doc: id => doc(col + "/" + (id || uid())), add: async d => { const r = doc(col + "/" + uid()); await r.set(d); return r; } });
-  return { http:true, doc, collection,
+  return { http:true, doc, collection, call, setToken(t){ token = t; try{ localStorage.setItem(KEY+"_token", t); }catch(e){} },
     auth: async (op, key, account, ph) => { const r = await call({ op, key, account, ph }); if(r.token){ token = r.token; try{ localStorage.setItem(KEY+"_token", token); }catch(e){} } return r; },
     signout(){ token = null; try{ localStorage.removeItem(KEY+"_token"); }catch(e){} } };
 }
@@ -2595,8 +2650,9 @@ function startOnline(){
   unsubs.push(db.collection("trades").where("from","==",k).limit(100).onSnapshot(s => { trOut = mapDocs(s); settleTrades(); armRenderIf("trades"); }, quiet));
   unsubs.push(db.collection("duels").where("to","==",k).limit(150).onSnapshot(s => { const all = mapDocs(s); btIn = all.filter(d=>!isArenaDuel(d)); notifyIncoming(btIn, "battle"); badges(); armRenderIf("battles"); onArenaDuels(all.filter(isArenaDuel), true); }, quiet));
   unsubs.push(db.collection("duels").where("from","==",k).limit(150).onSnapshot(s => { const all = mapDocs(s); btOut = all.filter(d=>!isArenaDuel(d)); settleDuels(); armRenderIf("battles"); onArenaDuels(all.filter(isArenaDuel), false); }, quiet));
+  if(typeof chatStart === "function") chatStart();
 }
-function stopOnline(){ unsubs.forEach(u => { try{ u(); }catch(e){} }); unsubs = []; playersCache = []; mkOpen = mkMine = trIn = trOut = btIn = btOut = []; arIn = []; arOut = []; badges(); }
+function stopOnline(){ if(typeof chatStop === "function") chatStop(); unsubs.forEach(u => { try{ u(); }catch(e){} }); unsubs = []; playersCache = []; mkOpen = mkMine = trIn = trOut = btIn = btOut = []; arIn = []; arOut = []; badges(); }
 function notifyIncoming(list, kind){
   list.filter(x=>x.status==="pending").forEach(x => { if(!seenIncoming.has(x.id)){ seenIncoming.add(x.id); if(Date.now() - x.t < 120000){ toast(`${x.fromName} sent you a ${kind} request`); tone(880,.12,"triangle",.07); tone(1175,.18,"triangle",.07,.12); } } });
 }
@@ -4820,6 +4876,118 @@ $("#sheetBody").addEventListener("click", e => {
   if(b.dataset.resell) return openResell(b.dataset.resell);
   b.disabled = true; (b.dataset.sbuy ? buyStake(b.dataset.sbuy) : unlistStake(b.dataset.sunlist)).catch(() => toast("Something went wrong. Try again.")).finally(() => { b.disabled = false; });
 });
+// ===================== CHAT + USERNAMES =====================
+// Swear words are blocked in usernames and starred out in chat.
+const SWEARS = ["fuck","fuk","fck","shit","bitch","cunt","dick","cock","pussy","wank","twat","bastard","slag","slut","whore","nigg","nigga","fag","retard","prick","bollock","arsehole","asshole","piss","tits","porn","nazi","hitler","bellend","knob","dildo","cum","sex","penis","vagina","boob"];
+const norm = s => String(s || "").toLowerCase().replace(/0/g,"o").replace(/[1!|]/g,"i").replace(/3/g,"e").replace(/[4@]/g,"a").replace(/[5$]/g,"s").replace(/7/g,"t").replace(/[^a-z]/g,"");
+function isBadName(n){ const s = norm(n); return SWEARS.some(w => s.includes(w)); }
+function cleanText(t){
+  return String(t).replace(/\S+/g, w => { const s = norm(w); return s && SWEARS.some(x => s.includes(x) && (x.length > 3 || s === x || s.startsWith(x))) ? "*".repeat(Math.min(8, w.length)) : w; });
+}
+
+// ---------- change username ----------
+async function renameAccount(newName, pass, out){
+  const say = (t, ok) => { out.textContent = t; out.className = "result " + (ok ? "win" : "lose"); };
+  newName = String(newName || "").trim();
+  if(!/^[A-Za-z0-9_]{3,20}$/.test(newName)) return say("Use 3–20 letters, numbers or underscores."), false;
+  if(isBadName(newName)) return say("Pick a name without swear words."), false;
+  if((pass || "").length < 4) return say("Type your password to confirm."), false;
+  const a = me(), oldKey = ONLINE ? onlineKey : mem.current, nk = newName.toLowerCase();
+  const oldPh = await sha(oldKey + ":" + pass), newPh = await sha(nk + ":" + pass);
+  if(ONLINE){
+    if(!NET.db || !NET.db.http) return say("Changing usernames works on the website version."), false;
+    let r; try{ await saveNow(); r = await NET.db.call({ op:"rename", newKey:nk, newName, oldPh, newPh }); }catch(e){ return say(e && e.message || "Couldn't reach the server."), false; }
+    if(r.error) return say(r.error), false;
+    onlineAcc = ensure(clone(r.account)); onlineKey = nk; try{ localStorage.setItem(KEY+"_online", nk); }catch(e){}
+    stopOnline(); startOnline();
+  } else {
+    if(a.ph && a.ph !== oldPh) return say("That password doesn't match."), false;
+    if(mem.users[nk] && nk !== oldKey) return say("That username is taken on this device."), false;
+    const acc = mem.users[oldKey]; delete mem.users[oldKey]; acc.name = newName; acc.key = nk; acc.ph = newPh; mem.users[nk] = acc; mem.current = nk; saveLocal();
+  }
+  say(`You're now ${newName}. Log in with this name from now on.`, true); sfx.win(); refresh(); renderMe && renderMe();
+  return true;
+}
+$("#rnGo").onclick = async () => { $("#rnGo").disabled = true; await renameAccount($("#rnName").value, $("#rnPass").value, $("#rnRes")); $("#rnGo").disabled = false; $("#rnPass").value = ""; };
+function checkBadName(){ const a = me(); if(a && isBadName(a.name || mem.current)){ $("#nameModal").hidden = false; } }
+$("#fnGo").onclick = async () => { $("#fnGo").disabled = true; const ok = await renameAccount($("#fnName").value, $("#fnPass").value, $("#fnRes")); $("#fnGo").disabled = false; if(ok) setTimeout(() => $("#nameModal").hidden = true, 900); };
+
+// ---------- chat ----------
+let chatAll = [], chatIn = [], chatOut = [], chatTab = "global", dmWith = null, chatUnsubs = [], mutes = {}, lastSend = 0;
+if(!mem.chatSeen) mem.chatSeen = { g:Date.now(), dm:{} };
+function chatStart(){
+  chatStop(); if(!ONLINE || !NET.db) return; const db = NET.db, k = onlineKey;
+  chatUnsubs.push(db.collection("chat").where("to","==","all").limit(400).onSnapshot(s => { chatAll = mapDocs(s); chatRender(); }, () => {}));
+  chatUnsubs.push(db.collection("chat").where("to","==",k).limit(300).onSnapshot(s => { chatIn = mapDocs(s); chatRender(); }, () => {}));
+  chatUnsubs.push(db.collection("chat").where("from","==",k).limit(300).onSnapshot(s => { chatOut = mapDocs(s).filter(m => m.to !== "all"); chatRender(); }, () => {}));
+  loadMutes();
+}
+function chatStop(){ chatUnsubs.forEach(u => { try{ u(); }catch(e){} }); chatUnsubs = []; chatAll = chatIn = chatOut = []; }
+async function loadMutes(){ if(NET.db && NET.db.http) try{ mutes = (await NET.db.call({ op:"mutes" })).mutes || {}; }catch(e){} }
+const nameCol = m => m.col ? `style="color:${m.col}"` : "";
+function chatMsgHTML(m){ const mine = m.from === onlineKey, t = new Date(m.t);
+  return `<div class="cm ${mine ? "mine" : ""}" data-m="${m.id}"><div class="cm-top"><b class="cm-name" data-who="${esc(m.from)}" data-nm="${esc(m.fromName)}" ${nameCol(m)}>${m.title ? `<i>${esc(m.title)}</i> ` : ""}${esc(m.fromName)}</b><small>${t.getHours()}:${String(t.getMinutes()).padStart(2,"0")}</small></div><div class="cm-text">${esc(cleanText(m.text))}</div></div>`; }
+function dmThreads(){ const map = {}; chatIn.concat(chatOut).forEach(m => { const o = m.from === onlineKey ? m.to : m.from, nm = m.from === onlineKey ? m.toName : m.fromName;
+  (map[o] = map[o] || { key:o, name:nm, msgs:[] }).msgs.push(m); }); return Object.values(map).map(x => (x.msgs.sort((a,b)=>a.t-b.t), x.last = x.msgs[x.msgs.length-1].t, x)).sort((a,b)=>b.last-a.last); }
+function chatRender(){
+  const seen = mem.chatSeen, k = onlineKey;
+  const newG = chatAll.filter(m => m.from !== k && m.t > seen.g).length, threads = dmThreads();
+  const newD = threads.reduce((n, th) => n + th.msgs.filter(m => m.from !== k && m.t > (seen.dm[th.key] || 0)).length, 0);
+  const open = !$("#chatPanel").hidden;
+  $("#chatBadge").hidden = !(newG + newD) || open; $("#chatBadge").textContent = newG + newD > 99 ? "99+" : newG + newD;
+  $("#dmBadge").hidden = !newD; $("#dmBadge").textContent = newD;
+  if(!open) return;
+  const box = $("#chatMsgs"), atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+  $("#chatSub").hidden = !(chatTab === "dms" && dmWith); $("#chatInRow").hidden = chatTab === "dms" && !dmWith;
+  if(chatTab === "global"){ const list = chatAll.slice().sort((a,b)=>a.t-b.t).slice(-120); seen.g = Math.max(seen.g, ...list.map(m=>m.t), 0);
+    box.innerHTML = list.length ? list.map(chatMsgHTML).join("") : `<p class="empty">No messages yet. Say hi! 👋</p>`; }
+  else if(!dmWith){ box.innerHTML = threads.length ? threads.map(th => { const last = th.msgs[th.msgs.length-1], un = th.msgs.filter(m => m.from !== k && m.t > (seen.dm[th.key] || 0)).length;
+      return `<button class="dm-row" data-dm="${esc(th.key)}" data-nm="${esc(th.name)}"><b>${esc(th.name)}</b><small>${esc(cleanText(last.text)).slice(0, 60)}</small>${un ? `<span class="badge static">${un}</span>` : ""}</button>`; }).join("") : `<p class="empty">No private messages yet. Tap someone's name in Everyone to message them.</p>`; }
+  else { const th = threads.find(x => x.key === dmWith.key), list = th ? th.msgs : []; if(list.length) seen.dm[dmWith.key] = Math.max(seen.dm[dmWith.key] || 0, ...list.map(m=>m.t));
+    $("#dmWith").textContent = dmWith.name; box.innerHTML = list.length ? list.map(chatMsgHTML).join("") : `<p class="empty">Start a private chat with ${esc(dmWith.name)}.</p>`; }
+  if(atBottom || box._first !== chatTab + (dmWith && dmWith.key)){ box.scrollTop = box.scrollHeight; box._first = chatTab + (dmWith && dmWith.key); }
+  saveLocalSoon();
+}
+let _slT = 0; function saveLocalSoon(){ clearTimeout(_slT); _slT = setTimeout(saveLocal, 2000); }
+async function chatSend(){
+  const inp = $("#chatIn"), text = inp.value.trim(); if(!text) return;
+  if(!ONLINE) return toast("Chat needs online play");
+  if(Date.now() - lastSend < 1500) return toast("Slow down a bit");
+  if(mutes[onlineKey] > Date.now()) return toast("You're muted for now");
+  const a = me(), cos = typeof myCosmetics === "function" ? myCosmetics() : {};
+  const msg = { from:onlineKey, fromName:a.name, to: chatTab === "dms" && dmWith ? dmWith.key : "all", toName: dmWith ? dmWith.name : "", text: cleanText(text).slice(0, 200), t:Date.now(), col:cos.col || null, title:cos.title || null };
+  lastSend = Date.now(); inp.value = "";
+  try{ await NET.db.collection("chat").add(msg); sfx.click(); }catch(e){ inp.value = text; toast(e && e.message || "Couldn't send"); }
+}
+$("#chatSend").onclick = chatSend;
+$("#chatIn").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); chatSend(); } });
+$("#chatBtn").onclick = () => { if(!ONLINE) return toast("Chat needs online play. Log in on the website."); $("#chatPanel").hidden = false; $("#chatBtn").hidden = true; chatRender(); setTimeout(() => $("#chatMsgs").scrollTop = 1e9, 30); };
+$("#chatClose").onclick = () => { $("#chatPanel").hidden = true; $("#chatPop").hidden = true; chatVis(); chatRender(); };
+$("#chatTabs").addEventListener("click", e => { const b = e.target.closest("[data-ct]"); if(!b) return; chatTab = b.dataset.ct; dmWith = null; $$("#chatTabs button").forEach(x => x.setAttribute("aria-pressed", x === b)); chatRender(); });
+$("#dmBack").onclick = () => { dmWith = null; chatRender(); };
+$("#chatMsgs").addEventListener("click", e => {
+  const dm = e.target.closest("[data-dm]"); if(dm){ dmWith = { key:dm.dataset.dm, name:dm.dataset.nm }; chatRender(); return; }
+  const nm = e.target.closest(".cm"); const pop = $("#chatPop"); if(!nm){ pop.hidden = true; return; }
+  const who = nm.querySelector("[data-who]"), key = who.dataset.who, name = who.dataset.nm, id = nm.dataset.m, mine = key === onlineKey;
+  const muted = mutes[key] > Date.now();
+  pop.innerHTML = `<b>${esc(name)}</b>${mine ? "" : `<button data-pa="dm">✉️ Message privately</button>`}${mine ? `<button data-pa="del">🗑️ Delete my message</button>` : ""}
+    ${mem.isAdmin && !mine ? `<button data-pa="adel">🛠️ Delete message</button>${muted ? `<button data-pa="unmute">🔊 Unmute</button>` : `<button data-pa="m60">🔇 Mute 1 hour</button><button data-pa="m1440">🔇 Mute 1 day</button>`}` : ""}<button data-pa="x">Cancel</button>`;
+  pop.hidden = false; pop.dataset.key = key; pop.dataset.name = name; pop.dataset.id = id;
+});
+$("#chatPop").addEventListener("click", async e => {
+  const b = e.target.closest("[data-pa]"); if(!b) return; const pop = $("#chatPop"), act = b.dataset.pa, { key, name, id } = pop.dataset; pop.hidden = true;
+  try{
+    if(act === "dm"){ chatTab = "dms"; dmWith = { key, name }; $$("#chatTabs button").forEach(x => x.setAttribute("aria-pressed", x.dataset.ct === "dms")); chatRender(); }
+    else if(act === "del"){ await NET.db.doc("chat/" + id).delete(); toast("Deleted"); }
+    else if(act === "adel"){ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"delete", id }); toast("Message deleted"); }
+    else if(act === "m60" || act === "m1440"){ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"mute", target:key, minutes:+act.slice(1) }); toast(`${name} is muted`); loadMutes(); }
+    else if(act === "unmute"){ await NET.db.call({ op:"admin", code:ADMIN_CODE, action:"unmute", target:key }); toast(`${name} can chat again`); loadMutes(); }
+  }catch(err){ toast(err && err.message || "That didn't work"); }
+});
+// show the bubble whenever you're in the game (not mid-Arena-run or in the vault)
+function chatVis(){ const show = !$("#app").hidden && !$("#app").classList.contains("playing") && $("#showroom").hidden && $("#chatPanel").hidden; $("#chatBtn").hidden = !show; }
+setInterval(chatVis, 500);
+setInterval(loadMutes, 60000);
 // ===================== SHOWROOM: personal vault (3D) + skin inspect =====================
 const SR = (() => {
   let renderer = null, scene = null, camera = null, raf = 0, mode = null, last = 0, ray = null;
