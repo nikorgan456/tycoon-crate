@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>try{var t=JSON.parse(localStorage.getItem("mintrush_v1")||"{}").theme||"dark";if(t==="auto")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="dark";}</script>
 <style>
 /* Layout: phone-first game shell. Top HUD · full-bleed 3D factory · bottom sheet of controls · bottom tab bar (Factory / Cases / Ranks / Me). Cases use a dark "loot screen" scope. */
 :root{
@@ -866,6 +867,75 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 .ban-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
 .ban-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n b" "s b";gap:0 8px;align-items:center;border:2px solid var(--edge);border-radius:14px;padding:7px 10px}
 .ban-row b{grid-area:n;overflow:hidden;text-overflow:ellipsis}.ban-row small{grid-area:s;color:var(--muted);font-weight:700}.ban-row .btn{grid-area:b}
+/* ---------- season pass, charms, kill counters ---------- */
+.shop-tabs{grid-template-columns:repeat(5,1fr)}.shop-tabs button{font-size:.76rem;padding:8px 0}
+.shop-art.charm{background:linear-gradient(135deg,#fff4d6,#ffd6ec)}.shop-art.charm span{font-size:2.6rem}
+.charm-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.itm-kc{position:absolute;left:6px;bottom:30px;z-index:2;background:#1a0c04;color:#ff9a2a;font:700 .62rem var(--mono);border-radius:6px;padding:1px 5px;box-shadow:0 0 6px rgba(255,120,20,.45)}
+.itm-ch{position:absolute;right:5px;bottom:28px;z-index:2;font-size:1.05rem;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.itm-ss{position:absolute;left:6px;top:24px;z-index:2;background:linear-gradient(90deg,#3ab8ff,#9a6aff);color:#fff;font-size:.58rem;font-weight:900;border-radius:6px;padding:0 5px}
+.kc-box{display:flex;flex-direction:column;gap:8px;border:2px solid var(--line);border-radius:16px;padding:10px;margin-bottom:6px}
+.kc-line{display:flex;align-items:center;justify-content:space-between;gap:10px}.kc-line span{display:flex;flex-direction:column;min-width:0}.kc-line small{opacity:.75;font-size:.74rem}
+.kc-big{font:700 1.3rem var(--mono);color:#ff9a2a;flex-direction:row!important;gap:8px}
+.ch-on{flex-direction:row!important;gap:6px;align-items:center}
+.ch-pick button{background:transparent;color:inherit;border-color:var(--line)!important}
+.pass-card{gap:8px}.pc-top{display:flex;align-items:center;gap:10px}.pc-top>div{flex:1;min-width:0;display:flex;flex-direction:column}.pc-top small{color:var(--muted);font-weight:700;font-size:.8rem}
+.pc-ic{font-size:1.8rem}.pass-card .bar,.pass-bar .bar{height:10px;background:#eef4fb;border-radius:6px;overflow:hidden}.pass-card .bar i,.pass-bar .bar i{display:block;height:100%;background:linear-gradient(90deg,#3ab8ff,#9a6aff);border-radius:6px}
+.pass-panel{max-height:min(92dvh,820px);overflow:hidden;padding-bottom:0}
+.pass-prog{display:flex;align-items:center;gap:12px}.pass-tier{display:flex;flex-direction:column;align-items:center;background:linear-gradient(135deg,#3ab8ff,#9a6aff);color:#fff;border-radius:16px;padding:6px 14px}
+.pass-tier b{font-family:var(--display);font-size:1.6rem;font-weight:400;line-height:1}.pass-tier small{font-size:.65rem;font-weight:900;text-transform:uppercase}
+.pass-bar{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}.pass-bar small{color:var(--muted);font-weight:700;font-size:.78rem}
+.pass-prem{display:flex;align-items:center;gap:10px;background:#fff8e6;border:2px solid var(--gold);border-radius:16px;padding:10px}.pass-prem>div{flex:1;display:flex;flex-direction:column;min-width:0}.pass-prem small{font-size:.75rem;color:var(--muted)}
+.pass-prem.on{justify-content:center;font-weight:900;color:#8a5a00}
+.pass-how summary{cursor:pointer;font-weight:800;color:var(--muted);font-size:.85rem}.pass-how p{margin:6px 0 0;font-size:.82rem;color:var(--muted)}
+.pass-list{overflow-y:auto;min-height:0;flex:1;display:flex;flex-direction:column;gap:6px;padding-bottom:16px;overscroll-behavior:contain}
+.pass-row{display:grid;grid-template-columns:30px minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:stretch}
+.pass-row.head{position:sticky;top:0;z-index:2;background:var(--card);padding:2px 0}.pass-row.head b{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:center}
+.pt{display:grid;place-items:center;font-family:var(--display);color:var(--muted);background:#eef4fb;border-radius:10px}
+.pass-row.open .pt{background:linear-gradient(135deg,#3ab8ff,#9a6aff);color:#fff}
+.pr{border:2px solid var(--edge);border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+.pr.prem{background:#fffbf0}.pr.ready{border-color:var(--green);box-shadow:0 0 0 2px rgba(46,204,113,.25)}.pr.got{opacity:.55}
+.pr-ic{font-size:1.3rem;line-height:1.2;display:flex;gap:2px;flex-wrap:wrap;justify-content:center}.pr-n{font-size:.68rem;font-weight:800;line-height:1.2;overflow-wrap:anywhere}
+.pr .btn{padding:5px 10px;font-size:.8rem}.pr-tag{font-weight:900;color:var(--muted);font-size:.8rem}
+.pass-row.big .pr{border-color:var(--gold);background:linear-gradient(135deg,#fff8e0,#ffe9f6)}
+.shop-row{grid-template-columns:1fr 1fr 1fr}.shop-row .btn{padding:12px 6px;font-size:.92rem}
+/* live versus */
+.ar-vs{position:absolute;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top,0px));z-index:6;display:flex;align-items:center;gap:8px;background:rgba(10,10,20,.72);color:#fff;border-radius:14px;padding:5px 10px;width:min(320px,82%);pointer-events:none}
+.vs-side{display:flex;flex-direction:column;align-items:center;min-width:56px}.vs-side small{font-size:.6rem;font-weight:900;text-transform:uppercase;opacity:.8;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-side b{font:700 .95rem var(--mono)}.vs-side.me b{color:#5ee89a}.vs-side.opp b{color:#ff8a8a}
+.vs-bar{flex:1;height:8px;border-radius:5px;background:#ff6b6b;overflow:hidden}.vs-bar i{display:block;height:100%;width:50%;background:#2ecc71;transition:width .4s}
+.vs-bets .chip{font-size:.85rem}#vsBetIn{width:100%}
+.duel-row.tie b{color:var(--gold-glow)}
+/* ===================== DARK MODE (pure black) ===================== */
+html[data-theme=dark]{color-scheme:dark;--sky:#000;--sky2:#000;--tx:#f2f2f5;--muted:#9a9aa8;--card:#0e0e11;--edge:#26262e;--s2:#16161b;--s3:#202027;--line2:#2c2c35}
+html[data-theme=dark] body{background:#000;color:var(--tx)}
+html[data-theme=dark] :is(.auth-card,.wcard,.sheet,.modal:not(.dark) .panel,.game-card,.set-card,.chat-panel,.chat-pop,.tabbar,.pill,.icon-btn,.vault-meter,.rank-tabs button,.chip,.pet-chip,.chip-grid button,.wheel-hub,.lbl.buy.no,.perks span,.shop-art i,.shop-tabs button[aria-pressed=true],.seg button[aria-pressed=true],.switch::after,.res-par .bar em){background:var(--card)}
+html[data-theme=dark] :is(.seg,.sheet-tabs button,.buymode button,.ms,.card-box,.statgrid div,.rank-row .rk,.xpbar,.ach div,.ar-select,.sbar div,.tag-chip,.gc-medals span,.miss,.chal,.diff-seg button,.wager-seg button,.tut,.admin input,.ls-row div,.pw-change input,.code-in,.track,.stk-own div,.stk-holders span,.chat-tabs button,.chat-x,.cm,.chat-in input,.dm-row,.chat-pop button,.shop-tok,.shop-x,.shop-tabs,.chip-grid button.locked,.pass-card .bar,.pass-bar .bar,.pt,.vault-meter .bar,.miss .bar,.track span,.switch,.up-row .up-ic){background:var(--s2)}
+html[data-theme=dark] :is(input[type=text],input[type=password],input[type=number],input[type=search],input:not([type]),select,.ban-panel input,textarea){background:var(--s2);color:var(--tx);border-color:var(--line2)}
+html[data-theme=dark] :is(.rank-row.me,.shop-card.on,.chip-grid button.on,.ls-row .got){background:#0c2016}
+html[data-theme=dark] :is(.shop-card.rare,.pr.prem,.pass-prem,.miss.ready,.gc-medals span.on,.ls-row .now,.ach div.got,.modal:not(.dark) .notice,.chal.in,.diff-seg button[aria-pressed=true],.wager-seg button[aria-pressed=true],.tag-chip.perk){background:#1d1708}
+html[data-theme=dark] :is(.cm.mine,.track.on){background:#22163a}
+html[data-theme=dark] .chat-head{background:linear-gradient(180deg,#1a1228,#0e0e11)}
+html[data-theme=dark] .shop-art.charm{background:linear-gradient(135deg,#2a2210,#2a1222)}
+html[data-theme=dark] .pass-row.big .pr{background:linear-gradient(135deg,#251d08,#25101e)}
+html[data-theme=dark] .pass-row.head{background:var(--card)}
+html[data-theme=dark] .ex-box{background:linear-gradient(135deg,#221a06,#1a1404)!important}
+html[data-theme=dark] .arena-view{background:#000}
+/* borders + the soft light-blue shadows */
+html[data-theme=dark] :is(.wcard,.set-card,.game-card,.pf-head,.rank-tabs button,.pill,.icon-btn,.vault-meter,.chip,.seg button[aria-pressed=true],.shop-tabs button[aria-pressed=true],.auth-card){box-shadow:0 4px 0 #1a1a20}
+html[data-theme=dark] .sheet{box-shadow:0 -6px 18px rgba(0,0,0,.6)}
+html[data-theme=dark] :is(.shop-card,.pr,.kc-box,.ban-row,.pf-head.mini,.chip-grid button,.pet-chip,.rank-row,.set-line,.miss,.chal){border-color:var(--edge)}
+html[data-theme=dark] .rank-row{border-bottom-color:var(--edge)}
+html[data-theme=dark] .modal{background:rgba(0,0,0,.72)}
+html[data-theme=dark] .modal:not(.dark) .panel{box-shadow:0 8px 0 #1a1a20;border:1px solid var(--edge)}
+html[data-theme=dark] :is(h1,h2,h3){color:var(--tx)}
+html[data-theme=dark] .btn.ghost{--b:var(--s3);--bd:#0a0a0c;color:var(--tx);text-shadow:none}
+html[data-theme=dark] .pf-head[data-dark=false]:not([style*=gradient]){background:var(--card)!important}
+html[data-theme=dark] .pf-av{background:rgba(255,255,255,.12)}
+html[data-theme=dark] .tabbar{border-top:1px solid var(--edge)}
+html[data-theme=dark] .tabbar button{color:var(--muted)}
+html[data-theme=dark] :is(.shop-tabs button,.seg button){color:var(--muted)}
+.theme-seg{grid-template-columns:repeat(3,1fr)!important}
 </style>
 </head>
 <body>
@@ -1131,6 +1201,7 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
       </div>
       <div class="set-card">
         <div class="set-head">🎨 Graphics</div>
+        <div class="set-line"><div><b>Theme</b><small>Dark, light, or match your device</small></div><div class="seg mini theme-seg" id="setTheme"><button data-v="dark" aria-pressed="true">🌙 Dark</button><button data-v="light" aria-pressed="false">☀️ Light</button><button data-v="auto" aria-pressed="false">Auto</button></div></div>
         <div class="set-line"><div><b>Bank lighting</b><small>Sunny day or candlelit night</small></div><div class="seg mini" id="setDay"><button data-v="day" aria-pressed="true">☀️ Day</button><button data-v="night" aria-pressed="false">🌙 Night</button></div></div>
         <div class="set-line"><div><b>Quality</b><small>Battery saver turns off shadows and some lights</small></div><div class="seg mini" id="setGfx"><button data-v="high" aria-pressed="true">High</button><button data-v="low" aria-pressed="false">Saver</button></div></div>
         <div class="set-line"><div><b>Customers in the bank</b><small>People walking to the tellers</small></div><button class="switch" role="switch" id="swCrowd" aria-checked="true" aria-label="Customers"></button></div>
@@ -2334,6 +2405,7 @@ const stockSkin = g => ({ key:"stock:"+g, crate:null, w:g, s:"Stock", c1:"#a7adb
 function skinFromKey(k){
   const parts = String(k||"").split(":");
   if(parts[0]==="stock") return stockSkin(parts[1]);
+  if(parts[0]==="season" && typeof seasonSkin === "function") return seasonSkin(+parts[1], parts[2], +parts[3]);
   if(parts.length===3) return LEGACY_SKINS[k] || genSkin("velvet","duke","common",0);
   if(parts.length===4) return genSkin(parts[0], parts[1], parts[2], +parts[3]);
   return genSkin("velvet","duke","common",0);
@@ -2353,7 +2425,8 @@ let gunSeq = 0;
 function itemHTML(it, extra=""){
   const sk = skinOf(it), r = rarOf(sk.r), w = wearOf(it.f);
   const cls = [sk.r==="gold"?"gold":"", sk.r==="legendary"?"legend":"", w.s==="FS"?"sealed":"", (w.s==="DX"||w.s==="WR")?"wrecked":""].join(" ");
-  const flags = (it.n ? `<span class="itm-new">NEW</span>` : "") + (it.lk ? `<span class="itm-lock">🔒</span>` : it.adm ? `<span class="itm-lock" title="Admin skin">🛠️</span>` : "");
+  const flags = (it.n ? `<span class="itm-new">NEW</span>` : "") + (it.lk ? `<span class="itm-lock">🔒</span>` : it.adm ? `<span class="itm-lock" title="Admin skin">🛠️</span>` : "")
+    + (it.kc !== undefined ? `<span class="itm-kc">☠ ${fmtBig(it.kc)}</span>` : "") + (it.ch && typeof charmOf === "function" && charmOf(it.ch) ? `<span class="itm-ch">${charmOf(it.ch).e}</span>` : "") + (sk.season ? `<span class="itm-ss">S${sk.season}</span>` : "");
   return `<div class="itm ${cls} ${extra}" data-id="${it.id}" style="--rc:${r.c}" title="${WEAP[sk.w].n} | ${sk.s} (${w.n})">
     ${flags}${gunSVG(sk, String(it.k).startsWith("stock:") ? undefined : it.f, /nofx/.test(extra))}<div class="in">${WEAP[sk.w].n}<small>${sk.s}</small></div><div class="wear">${w.s} · ${fmtF(it.f)}</div>${String(it.k).startsWith("stock:") ? "" : wearBar(it.f)}<div class="iv">${fmt(it.v)}</div></div>`;
 }
@@ -2500,7 +2573,7 @@ const gameValue = i => i.adm ? ADMIN_SELL : Math.max(1, Math.floor(i.v * SELL_RA
 const sellPrice = items => items.reduce((s,i)=>s + gameValue(i), 0);
 function sellToGame(ids){
   const a = me(); let gain = 0, n = 0;
-  a.inv = a.inv.filter(it => { if(!ids.has(it.id) || isProtected(it)) return true; gain += gameValue(it); n++; const g = skinOf(it).w; if(a.guns[g] && a.guns[g].eq === it.id) a.guns[g].eq = null; return false; });
+  a.inv = a.inv.filter(it => { if(!ids.has(it.id) || isProtected(it)) return true; gain += gameValue(it); n++; if(it.ch && a.cos){ a.cos.ch = a.cos.ch || {}; a.cos.ch[it.ch] = (a.cos.ch[it.ch] || 0) + 1; } const g = skinOf(it).w; if(a.guns[g] && a.guns[g].eq === it.id) a.guns[g].eq = null; return false; });
   if(n){ a.balance = capNum(a.balance + gain, MAX_BAL); save(); refresh(); bumpChips(); sfx.coin(); toast(`Sold ${n} skin${n>1?"s":""} for ${fmt(gain)} tokens`); armRender(); }
   return gain;
 }
@@ -2572,7 +2645,7 @@ function openItem(id){
   const sk = skinOf(it), w = wearOf(it.f), r = rarOf(sk.r);
   $("#imTitle").textContent = itemName(it);
   $("#imCard").innerHTML = itemHTML(it);
-  $("#imKv").innerHTML = `<span>Gun</span><span>${WEAP[sk.w].n}</span><span>Rarity</span><span style="color:${r.c};font-weight:700">${r.n}</span><span>Condition</span><span>${w.n} <small class="num">(${wearLvl(it.f)}/10)</small></span><span>Wear</span><span><span class="num">${fmtF(it.f)}</span>${wearBar(it.f)}</span><span>From</span><span>${sk.crate ? crateOf(sk.crate).n : "Gun Store"}</span><span>Value</span><span class="num" style="color:var(--gold-glow)">${fmt(it.v)} tokens</span>`;
+  $("#imKv").innerHTML = `<span>Gun</span><span>${WEAP[sk.w].n}</span><span>Rarity</span><span style="color:${r.c};font-weight:700">${r.n}</span><span>Condition</span><span>${w.n} <small class="num">(${wearLvl(it.f)}/10)</small></span><span>Wear</span><span><span class="num">${fmtF(it.f)}</span>${wearBar(it.f)}</span><span>From</span><span>${sk.season ? `Season ${sk.season} pass (never coming back)` : sk.crate ? crateOf(sk.crate).n : "Gun Store"}</span><span>Value</span><span class="num" style="color:var(--gold-glow)">${fmt(it.v)} tokens</span>`;
   const owns = !!a.guns[sk.w], isEq = owns && a.guns[sk.w].eq === it.id;
   $("#imActions").innerHTML = `<button class="btn gold" id="imSellGame">Sell to the game for ${fmt(sellPrice([it]))} tokens</button>` + (owns ? (isEq ? `<button class="btn ghost" id="imUneq">Equipped on your ${WEAP[sk.w].n} · unequip</button>` : `<button class="btn" id="imEq">Equip on your ${WEAP[sk.w].n}</button>`)
       : `<div class="notice">You don't own the <b>${WEAP[sk.w].n}</b> yet. Buy it in the Gun Store to use this skin.</div>`) + (ONLINE
@@ -3134,6 +3207,7 @@ function gunMesh(item, len = 1){
     else if(fx === "holo"){ glow.offset.x = (t * .25) % 1; face.emissiveIntensity = .25 + Math.sin(t*2.2)*.12; if(holder.userData.pts){ holder.userData.pts.rotation.x = t*.6; holder.userData.pts.material.opacity = .5 + Math.sin(t*3)*.4; } }
     else { map.offset.x = (t * .06) % 1; face.emissiveIntensity = .2 + Math.sin(t*2.6)*.15; }
   };
+  if(typeof gunExtras === "function") gunExtras(holder, item, len);
   return holder;
 }
 function tickGuns(root, t){ root.traverse(o => { if(o.userData && o.userData.tick) o.userData.tick(t); }); }
@@ -3237,7 +3311,7 @@ function renderArena(){
     const r = mgRec(gm.id), best = Math.max(0, ...Object.values(r.best)), md = r.medal || {}, MI = { gold:"🥇", silver:"🥈", bronze:"🥉" };
     const medals = DIFFS.map(d => `<span class="${md[d.k] ? "on" : ""}">${md[d.k] ? MI[md[d.k]] : diffUnlocked(gm.id, d.k) ? "○" : "🔒"} ${d.n}</span>`).join("");
     return `<div class="game-card" data-g="${gm.id}"><div class="gc-ico">${gm.ico}</div><div class="gc-main"><b>${gm.n}</b><small>${gm.cam} · best ${fmt(best)}${r.top ? ` · rank score ${fmt(r.top)}` : ""}</small><p>${gm.d}</p><div class="gc-medals">${medals}</div></div>
-      <div class="gc-btns"><button class="btn" data-play="${gm.id}">Play</button>${gm.id==="draw" ? `<button class="btn small purple" data-live="1">Live duel</button>` : ""}</div></div>`;
+      <div class="gc-btns"><button class="btn" data-play="${gm.id}">Play</button>${gm.id==="draw" ? `<button class="btn small purple" data-live="1">Live duel</button>` : `<button class="btn small purple" data-vs="${gm.id}">⚔️ Versus</button>`}</div></div>`;
   }).join("");
   $("#arenaNet").classList.toggle("off", !ONLINE); $("#arenaNet").querySelector("span").textContent = ONLINE ? "Online" : "Offline";
 }
@@ -3245,6 +3319,7 @@ $("#loadGun").onchange = e => { me().loadout = e.target.value; saveSoon(1000); r
 $("#gameCards").addEventListener("click", e => {
   const p = e.target.closest("[data-play]"); if(p){ sfx.click(); openStart(p.dataset.play); return; }
   if(e.target.closest("[data-live]")){ sfx.click(); openLiveDuel(); }
+  const v = e.target.closest("[data-vs]"); if(v){ sfx.click(); openVersus(v.dataset.vs); }
 });
 function openStart(id, opts={}){
   const gm = gameOf(id); arSel = Object.assign({ game:id, diff: opts.diff || arSel.diff || "normal", wager:0, chal:opts.chal || null, live:opts.live || null });
@@ -4622,13 +4697,15 @@ ACH.push(
 const yesterday = () => new Date(Date.now() - 864e5).toISOString().slice(0,10);
 const haptic = p => { if(navigator.vibrate && mem.haptics !== false) try{ navigator.vibrate(p); }catch(e){} };
 let arIn = [], arOut = [];
-const AR_MODES = new Set(["chal","qd"]);
+const AR_MODES = new Set(["chal","qd","lv","lvs","lvq"]);
 const isArenaDuel = d => AR_MODES.has(d.mode);
 const CHAL_REWARD = 100, LIVE_REWARD = 150, CHAL_CAP = 5;
 
 // ---------- results ----------
 function finishRun(id, diff, s, L, extra){
   const a = me(); if(!a) return; ensureArena(a);
+  if(typeof passAfterRun === "function") passAfterRun(id, diff, s, L, Object.assign({ versus: !!(arSel.live && arSel.live.kind === "lv") }, extra));
+  if(arSel.live && arSel.live.kind === "lv") return finishVersus(id, s, extra);
   if(extra.live) return finishLive(s, extra);
   const gm = gameOf(id), D = diffOf(diff), par = parFor(id, diff), rec = mgRec(id), score = Math.max(0, Math.round(s.score));
   if(a.ar.day !== today()){ a.ar.day = today(); a.ar.runs = 0; a.ar.cw = 0; }
@@ -4714,7 +4791,7 @@ function renderMissions(){
       ${m.c ? `<span class="miss-tag">Claimed</span>` : `<button class="btn small ${done ? "gold" : "ghost"}" data-claim="${k}" ${done ? "" : "disabled"}>+${d.r} ◆</button>`}</div>`; }).join("");
 }
 $("#missions").addEventListener("click", e => { const b = e.target.closest("[data-claim]"); if(!b) return; const a = me(), m = a.dm.list[+b.dataset.claim], d = MISS[m.i];
-  if(m.c || m.p < d.n) return; m.c = 1; a.balance = capNum(a.balance + d.r, MAX_BAL); save(); refresh(); bumpChips(); sfx.win(); toast(`+${d.r} tokens`); renderMissions(); arenaBadge();
+  if(m.c || m.p < d.n) return; m.c = 1; a.balance = capNum(a.balance + d.r, MAX_BAL); passXP(30, "mission"); save(); refresh(); bumpChips(); sfx.win(); toast(`+${d.r} tokens`); renderMissions(); arenaBadge();
   if(a.dm.list.every(x=>x.c)){ setTimeout(()=>{ toast("All 3 missions done! New ones tomorrow."); confetti(); }, 500); } });
 function arenaBadge(){
   const a = me(); if(!a) return; const dm = ensureMissions(a);
@@ -4723,16 +4800,16 @@ function arenaBadge(){
 }
 
 // ---------- challenges (async) ----------
-const expired = d => d.mode === "qd" ? Date.now() - d.t > 180000 : Date.now() - d.t > 7*864e5;
+const expired = d => d.mode === "qd" || d.mode === "lv" ? Date.now() - d.t > 180000 : Date.now() - d.t > 7*864e5;
 function renderChallenges(){
   const box = $("#challenges"); if(!box) return;
   if(!ONLINE){ box.innerHTML = `<p class="empty">Play online to challenge friends to beat your scores and to duel them live in Quick Draw.</p>`; $("#chalBadge").hidden = true; return; }
   const pin = arIn.filter(d => d.status === "pending" && !expired(d)), pout = arOut.filter(d => d.status === "pending" && !expired(d));
   const done = arIn.concat(arOut).filter(d => d.status === "done").sort((x,y)=>(y.doneAt||y.t)-(x.doneAt||x.t)).slice(0,6);
-  const gn = d => d.mode === "qd" ? "⚡ Live Quick Draw" : `${gameOf(d.game).ico} ${gameOf(d.game).n} · ${diffOf(d.diff).n}`;
+  const gn = d => d.mode === "qd" ? "⚡ Live Quick Draw" : d.mode === "lv" ? `⚔️ Versus · ${gameOf(d.game).n}${d.bet ? ` · bet ${fmt(d.bet)} ◆` : ""}` : `${gameOf(d.game).ico} ${gameOf(d.game).n} · ${diffOf(d.diff).n}`;
   $("#chalBadge").hidden = !pin.length; $("#chalBadge").textContent = pin.length;
   box.innerHTML = (pin.length ? pin.map(d => `<div class="chal in"><div><b>${esc(d.fromName)}</b><small>${gn(d)}${d.mode === "chal" ? ` · beat <b>${fmt(d.score)}</b>` : " · waiting for you now!"}</small></div>
-      <div class="chal-btns"><button class="btn small ${d.mode === "qd" ? "purple" : "gold"}" data-cacc="${d.id}">${d.mode === "qd" ? "Duel!" : "Play"}</button><button class="btn small ghost" data-cdec="${d.id}">✕</button></div></div>`).join("") : "")
+      <div class="chal-btns"><button class="btn small ${d.mode === "chal" ? "gold" : "purple"}" data-cacc="${d.id}">${d.mode === "qd" ? "Duel!" : d.mode === "lv" ? "Join!" : "Play"}</button><button class="btn small ghost" data-cdec="${d.id}">✕</button></div></div>`).join("") : "")
     + (pout.length ? pout.map(d => `<div class="chal out"><div><b>To ${esc(d.toName)}</b><small>${gn(d)}${d.mode === "chal" ? ` · your score ${fmt(d.score)}` : ""} · waiting</small></div><div class="chal-btns"><button class="btn small ghost" data-ccan="${d.id}">Cancel</button></div></div>`).join("") : "")
     + (done.length ? `<div class="label" style="margin-top:4px">Recent</div>` + done.map(d => { const won = d.winner === onlineKey, opp = d.from === onlineKey ? d.toName : d.fromName;
         return `<div class="chal done ${won ? "won" : "lost"}"><div><b>${won ? "Won" : "Lost"} vs ${esc(opp)}</b><small>${gn(d)}${d.mode === "chal" ? ` · ${fmt(d.from === onlineKey ? d.score : d.oscore)} vs ${fmt(d.from === onlineKey ? d.oscore : d.score)}` : ""}</small></div></div>`; }).join("") : "")
@@ -4742,7 +4819,7 @@ $("#challenges").addEventListener("click", async e => {
   const b = e.target.closest("[data-cacc],[data-cdec],[data-ccan]"); if(!b) return; b.disabled = true; sfx.click();
   try{
     if(b.dataset.cacc){ const d = arIn.find(x=>x.id===b.dataset.cacc); if(!d) return;
-      if(d.mode === "chal") openStart(d.game, { diff:d.diff, chal:d }); else await acceptLive(d); }
+      if(d.mode === "chal") openStart(d.game, { diff:d.diff, chal:d }); else if(d.mode === "lv") await acceptVersus(d); else await acceptLive(d); }
     else if(b.dataset.cdec){ const ref = NET.db.doc("duels/"+b.dataset.cdec); const s = await ref.get(); if(s.exists && s.data().status === "pending") await ref.update({ status:"declined" }); toast("Declined"); }
     else { const ref = NET.db.doc("duels/"+b.dataset.ccan); const s = await ref.get(); if(s.exists && s.data().status === "pending") await ref.update({ status:"cancelled" }); toast("Cancelled"); }
   }catch(err){ toast("Something went wrong. Try again."); }
@@ -4797,8 +4874,10 @@ async function settleArenaOut(){
   if(changed){ save(); refresh(); }
 }
 function onArenaDuels(list, incoming){
+  if(!incoming && typeof vsSettleOut === "function") vsSettleOut(list);
+  list = list.filter(d => d.mode !== "lvs" && d.mode !== "lvq");
   if(incoming){ arIn = list;
-    list.filter(d => d.status === "pending" && !expired(d)).forEach(d => { if(seenIncoming.has(d.id)) return; seenIncoming.add(d.id); if(Date.now() - d.t < 120000){ toast(d.mode === "qd" ? `⚡ ${d.fromName} wants a live Quick Draw duel! Go to the Arena.` : `${d.fromName} challenged you in ${gameOf(d.game).n}`); tone(880,.12,"triangle",.07); tone(1175,.18,"triangle",.07,.12); haptic([30,40,30]); } });
+    list.filter(d => d.status === "pending" && !expired(d)).forEach(d => { if(seenIncoming.has(d.id)) return; seenIncoming.add(d.id); if(Date.now() - d.t < 120000){ toast(d.mode === "qd" ? `⚡ ${d.fromName} wants a live Quick Draw duel! Go to the Arena.` : d.mode === "lv" ? `⚔️ ${d.fromName} wants a live ${gameOf(d.game).n} versus${d.bet ? ` (bet ${fmt(d.bet)} ◆)` : ""}! Go to the Arena.` : `${d.fromName} challenged you in ${gameOf(d.game).n}`); tone(880,.12,"triangle",.07); tone(1175,.18,"triangle",.07,.12); haptic([30,40,30]); } });
   } else { arOut = list; settleArenaOut(); checkLiveWait(); }
   arenaBadge(); if(current === "arena") renderChallenges();
 }
@@ -4879,7 +4958,7 @@ function checkStreak(){
   $("#lsRow").innerHTML = LS_REW.map((r,i) => `<div class="${i < idx ? "got" : i === idx ? "now" : ""}"><small>Day ${i+1}</small><b>${r}</b></div>`).join("");
   $("#lsText").textContent = day === 1 && a.ls.day > 1 ? `Your ${a.ls.day} day streak ended. Come back tomorrow to build it up again.` : idx === 6 ? "Day 7: the big one! The streak keeps going after this." : "Come back tomorrow for a bigger bonus.";
   $("#lsClaim").textContent = `Claim ${rew} tokens`;
-  $("#lsClaim").onclick = () => { const a2 = me(); if(a2.ls.last === today()) return; a2.ls = { last:today(), day }; a2.balance = capNum(a2.balance + rew, MAX_BAL); if(day >= 7) unlock("streak7");
+  $("#lsClaim").onclick = () => { const a2 = me(); if(a2.ls.last === today()) return; a2.ls = { last:today(), day }; a2.balance = capNum(a2.balance + rew, MAX_BAL); if(day >= 7) unlock("streak7"); passXP(25, "login");
     save(); refresh(); bumpChips(); sfx.win(); if(idx === 6) confetti(); $("#streakModal").hidden = true; };
   const show = () => { if(!$("#awayModal").hidden) return setTimeout(show, 600); $("#streakModal").hidden = false; tone(660,.1,"triangle",.06); };
   setTimeout(show, 900);
@@ -4979,6 +5058,7 @@ function itemExtras(it){
   $("#imVault").onclick = () => { const a = me(); const i = a.vault.indexOf(it.id);
     if(i >= 0){ a.vault[i] = null; toast("Taken off display"); } else { const free = a.vault.indexOf(null); if(free < 0) return toast("Your vault is full (13). Remove one first."); a.vault[free] = it.id; toast("On display in your vault 🏛️"); if(a.vault.filter(Boolean).length >= 5) unlock("vault"); }
     save(); sfx.click(); openItem(it.id); armRender(); };
+  if(typeof passItemExtras === "function") passItemExtras(it);
 }
 let vaultSel = 0;
 function cleanVault(){ const a = me(), ids = new Set(a.inv.map(i=>i.id)); let ch = false; a.vault = a.vault.map(v => v && !ids.has(v) ? (ch = true, null) : v); if(ch) saveSoon(2000); }
@@ -5420,6 +5500,20 @@ function banKick(msg){
 addEventListener("mr-banned", e => banKick(e.detail));
 setInterval(async () => { if(!ONLINE || !onlineKey || !NET.db || !NET.db.call || document.hidden) return;
   try{ const bans = (await NET.db.call({ op:"bans" })).bans || {}; if(bans[onlineKey]) banKick(bans[onlineKey] >= BAN_FOREVER ? "You've been banned from Mint Rush." : `You're banned ${untilText(bans[onlineKey])}.`); }catch(e){} }, 20000);
+// ===================== THEME: dark (default) / light / auto =====================
+function themeNow(){ const t = mem.theme || "dark"; return t === "auto" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : t; }
+function applyTheme(){
+  const t = themeNow(); document.documentElement.dataset.theme = t;
+  const m = document.querySelector('meta[name="theme-color"]'); if(m) m.content = t === "dark" ? "#000000" : "#8fd3ff";
+  if(typeof segSet === "function") segSet("#setTheme", mem.theme || "dark");
+}
+if(!mem.theme){ mem.theme = "dark"; mem.day = "night"; saveLocal(); }   // everyone starts in dark mode with the candlelit bank
+applyTheme();
+try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if(mem.theme === "auto") applyTheme(); }); }catch(e){}
+$("#setTheme").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; mem.theme = b.dataset.v; const dark = themeNow() === "dark";
+  mem.day = dark ? "night" : "day"; saveLocal(); applyTheme(); if(typeof segSet === "function") segSet("#setDay", mem.day); if(typeof bankLighting === "function") bankLighting(); sfx.click();
+  toast(dark ? "🌙 Dark mode on" : "☀️ Light mode on"); });
+setInterval(() => { const s = $("#setTheme"); if(s && current === "me") segSet("#setTheme", mem.theme || "dark"); }, 3000);
 // ===================== SHOWROOM: personal vault (3D) + skin inspect =====================
 const SR = (() => {
   let renderer = null, scene = null, camera = null, raf = 0, mode = null, last = 0, ray = null;
@@ -5846,6 +5940,22 @@ function petModel(kind){
     tail.add(new THREE.Mesh(new THREE.TubeGeometry(tc, 12, dog ? .04 : .035, 6), fur));
     U.walk = 1; U.speed = dog ? 1.6 : 1.2; U.scale = dog ? 1.15 : 1;
   }
+  if(kind === "unicorn"){
+    const white = mat("#f6f2ff", { roughness:.5 }), hoof = mat("#c9a24a", { metalness:.7, roughness:.3 });
+    const body = new THREE.Mesh(new THREE.SphereGeometry(.3, 18, 12), white); body.scale.set(1, .95, 1.9); body.position.y = .72; g.add(body);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(.11, .16, .5, 12), white); neck.position.set(0, 1.02, .42); neck.rotation.x = .55; g.add(neck);
+    const head = new THREE.Group(); head.position.set(0, 1.26, .6); g.add(head); U.head = head;
+    const sk = new THREE.Mesh(new THREE.SphereGeometry(.15, 14, 10), white); sk.scale.set(.85, .9, 1.5); sk.rotation.x = .5; head.add(sk);
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(.04, .3, 10), new THREE.MeshStandardMaterial({ color:"#ffe27a", emissive:"#ffb000", emissiveIntensity:.6, metalness:.6, roughness:.25 })); horn.position.set(0, .2, .06); horn.rotation.x = .45; head.add(horn);
+    [-1, 1].forEach(sd => { const e = new THREE.Mesh(new THREE.SphereGeometry(.025, 8, 6), mat("#2a1a4a")); e.position.set(sd*.08, .03, .12); head.add(e); const ear = new THREE.Mesh(new THREE.ConeGeometry(.035, .1, 6), white); ear.position.set(sd*.06, .14, -.04); head.add(ear); });
+    const rb = ["#ff5a7a", "#ffb03a", "#ffe23a", "#5ae07a", "#3ab8ff", "#9a6aff"];
+    rb.forEach((c, i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 6), mat(c, { emissive:c, emissiveIntensity:.3 })); m.position.set(0, 1.2 - i*.07, .52 - i*.07); g.add(m); });
+    const tail = new THREE.Group(); tail.position.set(0, .82, -.55); g.add(tail); U.tail = tail;
+    rb.forEach((c, i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(.055, 8, 6), mat(c, { emissive:c, emissiveIntensity:.3 })); m.position.set(0, -i*.06, -i*.05); tail.add(m); });
+    [[-.13, .3], [.13, .3], [-.13, -.3], [.13, -.3]].forEach(([x, z]) => { leg(white, x, z, .5, .045); const f = cyl(.05, .05, .06, hoof, 8); f.position.y = -.5; U.legs[U.legs.length - 1].add(f); });
+    const glow = glowSprite("#ffd6ff", 1.4); glow.material.opacity = .35; glow.position.y = .8; g.add(glow); U.glow = glow;
+    U.walk = 1; U.speed = 1.5; U.scale = 1.15;
+  }
   if(kind === "robot"){
     const steel = mat("#cfd6de", { metalness:.75, roughness:.25 }), darkS = mat("#3a4250", { metalness:.6, roughness:.35 }), glow = new THREE.MeshBasicMaterial({ color:"#4ae0ff" });
     const body = cyl(.26, .32, .62, steel, 20); body.position.y = .85; g.add(body);
@@ -5954,26 +6064,32 @@ const PETS = {
   robot:{ n:"Robot butler", p:20000, b:.05, ic:"🤖", d:"Hovers about with a tray of gold" },
   dragon:{ n:"Dragon", p:250000, b:.12, ic:"🐉", d:"Rare. Circles the hall guarding your hoard", rare:true },
   phoenix:{ n:"Phoenix", p:500000, b:.20, ic:"🔥", d:"Rarest. Flies laps leaving a trail of fire", rare:true },
+  unicorn:{ n:"Unicorn", p:-1, b:.25, ic:"🦄", d:"Season 1 pass only (tier 30). Never coming back", rare:true, pass:1 },
 };
 const PET_MAX = 5;
-const AVATARS = [["😀",0],["😎",0],["🤠",0],["🦊",0],["🐼",0],["🐸",0],["🤖",5000],["👽",5000],["🦁",8000],["🐙",8000],["🥷",12000],["🧛",15000],["🦄",20000],["🐲",25000],["👑",50000],["💎",100000]];
+const AVATARS = [["😀",0],["😎",0],["🤠",0],["🦊",0],["🐼",0],["🐸",0],["🤖",5000],["👽",5000],["🦁",8000],["🐙",8000],["🥷",12000],["🧛",15000],["🦄",20000],["🐲",25000],["👑",50000],["💎",100000],["🧊",-1],["☃️",-1],["🦭",-1],["🐧",-1]];
 const NAME_COLS = [{ id:"none", n:"Default", c:null, p:0 }, { id:"mint", n:"Mint", c:"#1e9e57", p:0 }, { id:"sky", n:"Sky", c:"#2463c9", p:5000 }, { id:"ruby", n:"Ruby", c:"#d1304a", p:5000 },
-  { id:"violet", n:"Violet", c:"#7340b8", p:10000 }, { id:"sunset", n:"Sunset", c:"#e0670c", p:10000 }, { id:"pink", n:"Bubblegum", c:"#d63a96", p:15000 }, { id:"teal", n:"Teal", c:"#0f9a9a", p:15000 }, { id:"gold", n:"Gold", c:"#b88200", p:40000 }];
+  { id:"violet", n:"Violet", c:"#7340b8", p:10000 }, { id:"sunset", n:"Sunset", c:"#e0670c", p:10000 }, { id:"pink", n:"Bubblegum", c:"#d63a96", p:15000 }, { id:"teal", n:"Teal", c:"#0f9a9a", p:15000 }, { id:"gold", n:"Gold", c:"#b88200", p:40000 },
+  { id:"ice", n:"Ice", c:"#1a9ad0", p:-1 }, { id:"frost", n:"Frostbite", c:"#4a6aff", p:-1 }, { id:"glacier", n:"Glacier", c:"#12b0b8", p:-1 }];
 const TITLES = [{ id:"rookie", n:"Rookie", p:0 }, { id:"printer", n:"Printer", p:0 },
   { id:"m1", n:"Millionaire", ach:"m1" }, { id:"m2", n:"Billionaire", ach:"m2" }, { id:"m3", n:"Trillionaire", ach:"m3" }, { id:"ipo", n:"Tycoon", ach:"ipo" }, { id:"reborn", n:"Reborn", ach:"reborn" },
   { id:"gold", n:"Golden touch", ach:"gold" }, { id:"tap", n:"Button masher", ach:"tap" }, { id:"c100", n:"Case addict", ach:"c100" }, { id:"leg", n:"Unicorn hunter", ach:"leg" }, { id:"fs", n:"Mint condition", ach:"fs" },
-  { id:"roller", n:"High roller", p:20000 }, { id:"boss", n:"Big boss", p:50000 }, { id:"untouch", n:"Untouchable", p:150000 }, { id:"legend", n:"The Legend", p:500000 }];
+  { id:"roller", n:"High roller", p:20000 }, { id:"boss", n:"Big boss", p:50000 }, { id:"untouch", n:"Untouchable", p:150000 }, { id:"legend", n:"The Legend", p:500000 },
+  { id:"s1", n:"Season 1 Veteran", p:-1 }, { id:"s1champ", n:"S1 Champion", p:-1 }, { id:"s1elite", n:"S1 Elite", p:-1 }, { id:"s1legend", n:"Frost Legend", p:-1 }];
 const BANNERS = [{ id:"none", n:"Plain", bg:"#ffffff", p:0 }, { id:"mint", n:"Mint", bg:"linear-gradient(120deg,#d4f8e2,#8fe3b5)", p:0 },
   { id:"sunset", n:"Sunset", bg:"linear-gradient(120deg,#ffc27a,#ff6b8b)", p:8000 }, { id:"ocean", n:"Ocean", bg:"linear-gradient(120deg,#7ad6ff,#3a63d8)", p:8000, dark:true },
   { id:"forest", n:"Forest", bg:"linear-gradient(120deg,#9ad87a,#1e6a3a)", p:12000, dark:true }, { id:"gold", n:"Gold bars", bg:"repeating-linear-gradient(135deg,#ffe08a 0 14px,#f2b929 14px 28px)", p:25000 },
   { id:"galaxy", n:"Galaxy", bg:"radial-gradient(circle at 18% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 62% 70%,#fff 0 1px,transparent 2px),radial-gradient(circle at 85% 22%,#fff 0 1.5px,transparent 2.5px),linear-gradient(120deg,#1b1450,#5a2a9a,#0b0a2a)", p:40000, dark:true },
-  { id:"inferno", n:"Inferno", bg:"linear-gradient(0deg,#3a0a00,#c4320a 55%,#ffb020)", p:40000, dark:true }, { id:"candy", n:"Candy", bg:"repeating-linear-gradient(45deg,#ffd6ec 0 12px,#ffffff 12px 24px)", p:15000 }];
+  { id:"inferno", n:"Inferno", bg:"linear-gradient(0deg,#3a0a00,#c4320a 55%,#ffb020)", p:40000, dark:true }, { id:"candy", n:"Candy", bg:"repeating-linear-gradient(45deg,#ffd6ec 0 12px,#ffffff 12px 24px)", p:15000 },
+  { id:"frost", n:"Frostbite", bg:"linear-gradient(120deg,#eaf7ff,#8fd3ff,#3a7ad8)", p:-1 }, { id:"aurora", n:"Aurora", bg:"linear-gradient(120deg,#0a1a3a,#1aa88a,#7a3aff)", p:-1, dark:true },
+  { id:"blizzard", n:"Blizzard", bg:"radial-gradient(circle at 20% 30%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 60%,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 80%,#fff 0 1.5px,transparent 2.5px),linear-gradient(160deg,#9ab8d8,#3a5a8a)", p:-1, dark:true }];
 const SPIN = [{ t:"tok", v:100, w:25, l:"100 ◆", c:"#3a86ff" }, { t:"frenzy", w:10, l:"Frenzy", c:"#ff6b6b" }, { t:"tok", v:250, w:20, l:"250 ◆", c:"#2ecc71" }, { t:"case", w:10, l:"Free case", c:"#9b5de5" },
   { t:"tok", v:500, w:15, l:"500 ◆", c:"#ff9f1c" }, { t:"tok", v:2500, w:5, l:"2.5K ◆", c:"#ff7ac6" }, { t:"tok", v:1000, w:10, l:"1K ◆", c:"#16b8c9" }, { t:"tok", v:10000, w:5, l:"10K ◆", c:"#ffc93c" }];
 
 function ensureCos(a){
   const c = a.cos = Object.assign({ own:{}, vault:"classic", bank:"classic", pets:[], av:"😀", col:"none", title:"rookie", ban:"none" }, a.cos || {});
   if(!c.own || typeof c.own !== "object") c.own = {};
+  if(!c.ch || typeof c.ch !== "object") c.ch = {};
   c.pets = (Array.isArray(c.pets) ? c.pets : []).filter(p => PETS[p]).slice(0, PET_MAX);
   a.spin = a.spin || ""; return c;
 }
@@ -5993,7 +6109,7 @@ const escC = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", 
 document.body.insertAdjacentHTML("beforeend", `
 <div class="modal" id="shopModal" hidden><div class="panel wide shop-panel">
   <div class="shop-top"><h2>🛍️ Shop</h2><span class="shop-tok">◆ <b class="num" id="shopTok">0</b></span><button class="shop-x" data-cclose aria-label="Close">✕</button></div>
-  <div class="shop-tabs" id="shopTabs"><button data-t="vault" aria-pressed="true">🏛️ Vault</button><button data-t="bank" aria-pressed="false">🏦 Bank</button><button data-t="pets" aria-pressed="false">🐾 Pets</button><button data-t="me" aria-pressed="false">😎 Profile</button></div>
+  <div class="shop-tabs" id="shopTabs"><button data-t="vault" aria-pressed="true">🏛️ Vault</button><button data-t="bank" aria-pressed="false">🏦 Bank</button><button data-t="pets" aria-pressed="false">🐾 Pets</button><button data-t="me" aria-pressed="false">😎 Profile</button><button data-t="charms" aria-pressed="false">🧸 Charms</button></div>
   <div class="shop-body" id="shopBody"></div>
 </div></div>
 <div class="modal" id="spinModal" hidden><div class="panel spin-panel">
@@ -6008,7 +6124,7 @@ document.body.insertAdjacentHTML("beforeend", `
 let shopTab = "vault", shopPend = null, shopPendT = 0;
 function openShop(tab){ const a = me(); if(!a) return; ensureCos(a); if(tab) shopTab = tab; shopPend = null; $("#shopModal").hidden = false; renderShop(); sfx.click(); }
 $("#shopTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; shopTab = b.dataset.t; shopPend = null; sfx.click(); renderShop(); });
-function priceTag(p){ return p ? `◆ ${fmtBig(p)}` : "Free"; }
+function priceTag(p){ return p < 0 ? "🎟️ Pass" : p ? `◆ ${fmtBig(p)}` : "Free"; }
 function renderShop(){
   const a = me(); if(!a) return; const c = ensureCos(a);
   $("#shopTok").textContent = fmtBig(a.balance);
@@ -6030,20 +6146,24 @@ function renderShop(){
     if(n) h += `<div class="pet-own">${c.pets.map((p, i) => `<button class="pet-chip" data-rel="${i}" title="Send away">${PETS[p].ic} ${PETS[p].n}${shopPend === "rel:" + i ? " · tap again to send away" : " ✕"}</button>`).join("")}</div>`;
     h += `<div class="shop-grid">` + Object.entries(PETS).map(([id, p]) => { const have = c.pets.filter(x => x === id).length, key = "p:" + id;
       return `<div class="shop-card ${p.rare ? "rare" : ""}"><div class="shop-art pet" style="background:${p.rare ? "linear-gradient(135deg,#ffcf4a,#ff5a1a)" : "linear-gradient(135deg,#d4f8e2,#8fd3ff)"}"><span>${p.ic}</span>${have ? `<i>×${have}</i>` : ""}</div><b>${p.n}</b><small>${p.d}</small><small class="shop-buff">+${Math.round(p.b*100)}% income</small>
-        ${n >= PET_MAX ? btn(key, "Full (5/5)", "ghost", true) : buyBtn(key, p.p)}</div>`; }).join("") + `</div>`;
+        ${p.p < 0 ? (c.own[key] && !have ? (n >= PET_MAX ? btn(key, "Full (5/5)", "ghost", true) : btn(key, "Bring back", "gold")) : btn(key, have ? "✓ Yours" : `🎟️ Season ${p.pass} pass`, "ghost", true)) : n >= PET_MAX ? btn(key, "Full (5/5)", "ghost", true) : buyBtn(key, p.p)}</div>`; }).join("") + `</div>`;
+  }
+  if(shopTab === "charms"){
+    h = `<p class="shop-note">Hang a charm on any skin: open the skin in Cases → Inventory. One charm per skin, and you get it back when you take it off. 🎟️ charms only come from the season pass.</p><div class="shop-grid charm-grid">` + CHARMS.map(x => { const have = c.ch[x.id] || 0, key = "ch:" + x.id, on = (a.inv || []).filter(i => i.ch === x.id).length;
+      return `<div class="shop-card ${x.p < 0 ? "rare" : ""}"><div class="shop-art charm"><span>${x.e}</span>${have || on ? `<i>×${have}${on ? ` +${on} on` : ""}</i>` : ""}</div><b>${x.n}</b>${x.p < 0 ? btn(key, `🎟️ Season ${x.s} pass`, "ghost", true) : buyBtn(key, x.p)}</div>`; }).join("") + `</div>`;
   }
   if(shopTab === "me"){
     const me_ = cosOf(a);
     h = `<div class="pf-head mini" style="background:${me_.ban.bg}" data-dark="${!!me_.ban.dark}"><div class="pf-av">${me_.av}</div><div class="pf-txt">${me_.title ? `<span class="pf-title">${escC(me_.title)}</span>` : ""}<b class="pf-name" style="${me_.col ? `color:${me_.col}` : ""}">${escC(a.name)}</b></div></div>
       <div class="shop-sec">Avatar</div><div class="chip-grid">${AVATARS.map(([e, p]) => { const key = "av:" + e, own = ownsCos(a, key, p), on = c.av === e;
-        return `<button class="av-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}">${e}${own ? "" : `<small>${shopPend === key ? "again" : fmtBig(p)}</small>`}</button>`; }).join("")}</div>
+        return `<button class="av-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}">${e}${own ? "" : `<small>${shopPend === key ? "again" : p < 0 ? "🎟️" : fmtBig(p)}</small>`}</button>`; }).join("")}</div>
       <div class="shop-sec">Name colour</div><div class="chip-grid">${NAME_COLS.map(x => { const key = "c:" + x.id, own = ownsCos(a, key, x.p), on = c.col === x.id;
-        return `<button class="col-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}"><i style="background:${x.c || "#26304a"}"></i>${x.n}${own ? "" : `<small>${shopPend === key ? "tap again" : "◆ " + fmtBig(x.p)}</small>`}</button>`; }).join("")}</div>
+        return `<button class="col-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}"><i style="background:${x.c || "#26304a"}"></i>${x.n}${own ? "" : `<small>${shopPend === key ? "tap again" : priceTag(x.p)}</small>`}</button>`; }).join("")}</div>
       <div class="shop-sec">Title <small>Some come from achievements</small></div><div class="chip-grid">${TITLES.map(x => { const key = "t:" + x.id, own = ownsCos(a, key, x.ach ? -1 : x.p, x.ach), on = c.title === x.id;
-        const lock = x.ach ? `🏅 ${(ACH.find(q => q[0] === x.ach) || [0, ""])[1]}` : shopPend === key ? "tap again" : "◆ " + fmtBig(x.p);
+        const lock = x.ach ? `🏅 ${(ACH.find(q => q[0] === x.ach) || [0, ""])[1]}` : shopPend === key ? "tap again" : priceTag(x.p);
         return `<button class="ti-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}" ${!own && x.ach ? "disabled" : ""}>${x.n}${own ? "" : `<small>${lock}</small>`}</button>`; }).join("")}</div>
       <div class="shop-sec">Banner</div><div class="chip-grid ban">${BANNERS.map(x => { const key = "bn:" + x.id, own = ownsCos(a, key, x.p), on = c.ban === x.id;
-        return `<button class="ban-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}"><i style="background:${x.bg}"></i>${x.n}${own ? "" : `<small>${shopPend === key ? "tap again" : "◆ " + fmtBig(x.p)}</small>`}</button>`; }).join("")}</div>`;
+        return `<button class="ban-chip ${on ? "on" : ""} ${own ? "" : "locked"}" data-k="${key}"><i style="background:${x.bg}"></i>${x.n}${own ? "" : `<small>${shopPend === key ? "tap again" : priceTag(x.p)}</small>`}</button>`; }).join("")}</div>`;
   }
   $("#shopBody").innerHTML = h;
   const v = $("#shopVisit"); if(v) v.onclick = () => { $("#shopModal").hidden = true; showView("cases"); openVault(); };
@@ -6057,6 +6177,7 @@ function cosPrice(key){
   if(k === "v"){ const t = VAULT_THEMES.find(x => x.id === id); return t && { p:t.p, n:t.n }; }
   if(k === "b"){ const t = BANK_LOOKS.find(x => x.id === id); return t && { p:t.p, n:t.n }; }
   if(k === "p") return PETS[id] && { p:PETS[id].p, n:PETS[id].n };
+  if(k === "ch"){ const t = CHARMS.find(x => x.id === id); return t && { p:t.p, n:t.n + " charm", charm:1 }; }
   if(k === "av"){ const t = findAv(id); return t && { p:t[1], n:"Avatar " + id }; }
   if(k === "c"){ const t = NAME_COLS.find(x => x.id === id); return t && { p:t.p, n:t.n + " name" }; }
   if(k === "t"){ const t = TITLES.find(x => x.id === id); return t && { p:t.ach ? -1 : t.p, n:`"${t.n}" title`, ach:t.ach }; }
@@ -6068,14 +6189,16 @@ $("#shopBody").addEventListener("click", e => {
   if(rel){ const i = +rel.dataset.rel, key = "rel:" + i; if(shopPend !== key){ shopPend = key; shopPendT = Date.now(); sfx.click(); return renderShop(); }
     const gone = c.pets.splice(i, 1)[0]; shopPend = null; save(); cosApply3D(); renderShop(); toast(`${PETS[gone].n} went off to live on a farm`); return; }
   const b = e.target.closest("[data-k]"); if(!b || b.disabled) return; const key = b.dataset.k, info = cosPrice(key); if(!info) return;
-  const isPet = key.startsWith("p:");
-  if(!isPet && ownsCos(a, key, info.p, info.ach)){ cosEquip(a, key); shopPend = null; save(); sfx.click(); renderShop(); cosAfter(key); return; }
-  if(info.p < 0) return;
+  const isPet = key.startsWith("p:"), isCharm = key.startsWith("ch:");
+  if(isPet && info.p < 0 && c.own[key] && !c.pets.includes(key.slice(2))){ if(c.pets.length >= PET_MAX) return toast(`You already have ${PET_MAX} pets`); c.pets.push(key.slice(2)); save(); sfx.buy(); renderShop(); cosAfter(key); return toast(`${PETS[key.slice(2)].ic} ${info.n} is back in your bank!`); }
+  if(!isPet && !isCharm && ownsCos(a, key, info.p, info.ach)){ cosEquip(a, key); shopPend = null; save(); sfx.click(); renderShop(); cosAfter(key); return; }
+  if(info.p < 0) return toast("That one only comes from the season pass");
   if(isPet && c.pets.length >= PET_MAX) return toast(`You already have ${PET_MAX} pets`);
   if(a.balance < info.p) return toast(`You need ${fmtBig(info.p - a.balance)} more tokens`);
   if(shopPend !== key || Date.now() - shopPendT > 6000){ shopPend = key; shopPendT = Date.now(); sfx.click(); return renderShop(); }
   a.balance -= info.p; shopPend = null;
-  if(isPet){ c.pets.push(key.slice(2)); toast(`${PETS[key.slice(2)].ic} ${info.n} moved into your bank!`); }
+  if(isCharm){ const id = key.slice(3); c.ch[id] = (c.ch[id] || 0) + 1; toast(`${CHARMS.find(x => x.id === id).e} ${info.n} added. Attach it from a skin's menu.`); }
+  else if(isPet){ c.pets.push(key.slice(2)); toast(`${PETS[key.slice(2)].ic} ${info.n} moved into your bank!`); }
   else { c.own[key] = 1; cosEquip(a, key); toast(`Bought: ${info.n}`); }
   save(); refresh(); bumpChips(); sfx.buy(); renderShop(); cosAfter(key);
 });
@@ -6113,6 +6236,7 @@ function spinPrize(s){
   if(s.t === "case"){ const pool = ownedGuns(a), cs = CRATES.filter(c => c.price >= 250 && c.price <= 5000), c = cs[randInt(cs.length)] || CRATES[0];
     if(!pool.length){ a.balance += 500; msg = "Free case! You don't own a gun yet, so you get 500 tokens instead."; }
     else { const it = rollItem(c, pool); it.n = 1; a.inv.push(it); msg = `Free ${c.n}: ${itemName(it)} (${rarOf(skinOf(it).r).n})!`; } }
+  if(typeof passXP === "function") passXP(15, "spin");
   save(); refresh(); bumpChips(); (s.v >= 2500 || s.t === "case") ? (sfx.big(), confetti()) : sfx.win();
   $("#spinRes").textContent = msg; $("#spinRes").className = "result win"; toast(msg);
 }
@@ -6134,6 +6258,335 @@ $("#shopBtn").onclick = () => openShop();
 $("#spinBtn").onclick = openSpin;
 $("#spinShop").onclick = () => { if(spinning) return; $("#spinModal").hidden = true; openShop(); };
 setInterval(() => { if(me()) cosBadge(); }, 5000);
+// ===================== SEASON PASS, CHARMS AND KILL COUNTERS =====================
+// Seasons run for a calendar month (UK time is close enough to UTC). Season 1 = November 2026.
+const seasonNow = () => { const d = new Date(); return (d.getUTCFullYear() - 2026) * 12 + d.getUTCMonth() - 10 + 1; };
+const seasonEnds = () => { const d = new Date(); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1); };
+const PASS_XP = 200, PASS_TIERS = 30, PASS_PREM = 250000, KC_PRICE = 1000;
+const SEASON_THEME = { 1:{ w:"Frostbite", hue:200 } };
+const themeOf = sn => SEASON_THEME[sn] || { w:["Aurora","Ember","Bloom","Monsoon","Solstice","Harvest","Tempest","Nova"][(sn - 2) % 8], hue:(sn * 47) % 360 };
+const SS_PART = ["Edge","Pulse","Crown","Shard","Reign","Gilded"], SS_RAR = ["mythic","mythic","legendary","mythic","legendary","gold"], SS_BASE = [2500, 6000, 40000, 5000, 30000, 120000], SS_PAT = ["galaxy","circuit","filigree","marble","filigree","filigree"];
+// season-only skins: their keys include the season number, so they can never drop again later
+function seasonSkin(sn, g, n){
+  const key = `season:${sn}:${g}:${n}`; if(SKIN_CACHE[key]) return SKIN_CACHE[key];
+  const T = themeOf(+sn), gold = SS_RAR[n] === "gold", h = T.hue;
+  return SKIN_CACHE[key] = { key, crate:null, season:+sn, w:WEAP[g] ? g : "duke", s:`${T.w} ${SS_PART[n] || "Edge"}`, r:SS_RAR[n] || "mythic", p:SS_PAT[n] || "galaxy",
+    c1: gold ? hsl(46, 100, 64) : hsl(h - 5, 90, 72), c2: gold ? hsl(h + 10, 70, 26) : hsl(h + 15, 80, 26), c3: gold ? hsl(50, 100, 88) : hsl(h - 20, 100, 86), base:SS_BASE[n] || 2500 };
+}
+const CHARMS = [
+  { id:"dice", n:"Lucky Dice", e:"🎲", p:3000 }, { id:"coin", n:"Gold Coin", e:"🪙", p:3000 }, { id:"cherry", n:"Cherries", e:"🍒", p:3000 }, { id:"star", n:"Star", e:"⭐", p:5000 },
+  { id:"skull", n:"Skull", e:"💀", p:5000 }, { id:"duck", n:"Rubber Duck", e:"🦆", p:8000 }, { id:"cactus", n:"Cactus", e:"🌵", p:8000 }, { id:"rocket", n:"Rocket", e:"🚀", p:12000 },
+  { id:"gem", n:"Diamond", e:"💎", p:25000 }, { id:"crown", n:"Crown", e:"👑", p:40000 },
+  // Season 1 pass only
+  { id:"s1snow", n:"Snowflake", e:"❄️", p:-1, s:1 }, { id:"s1bolt", n:"Lightning", e:"⚡", p:-1, s:1 }, { id:"s1moon", n:"Moon", e:"🌙", p:-1, s:1 }, { id:"s1clover", n:"Clover", e:"🍀", p:-1, s:1 },
+  { id:"s1rainbow", n:"Rainbow", e:"🌈", p:-1, s:1 }, { id:"s1crystal", n:"Ice Crystal", e:"💠", p:-1, s:1 }, { id:"s1orb", n:"Crystal Ball", e:"🔮", p:-1, s:1 }, { id:"s1star", n:"Shooting Star", e:"🌟", p:-1, s:1 }
+];
+const charmOf = id => CHARMS.find(c => c.id === id);
+// ---------- rewards ----------
+const R_ = { tok:v => ({ t:"tok", v }), cs:c => ({ t:"case", c }), ch:id => ({ t:"charm", id }), cos:k => ({ t:"cos", k }), sk:n => ({ t:"skin", n }), pet:id => ({ t:"pet", id }) };
+const PASS_FREE = [R_.tok(500), R_.ch("s1snow"), R_.cs("neon"), R_.cos("av:🧊"), R_.tok(1000), R_.cs("royal"), R_.ch("s1bolt"), R_.cos("bn:frost"), R_.tok(1500), R_.sk(0),
+  R_.cs("gilded"), R_.cos("c:ice"), R_.tok(2500), R_.ch("s1moon"), R_.cos("t:s1"), R_.cs("emerald"), R_.tok(3500), R_.cos("av:☃️"), R_.cs("inferno"), R_.sk(1),
+  R_.tok(5000), R_.ch("s1clover"), R_.cos("bn:aurora"), R_.cs("frost"), R_.tok(7500), R_.cos("c:frost"), R_.cs("phantom"), R_.ch("s1rainbow"), R_.tok(10000),
+  [R_.sk(2), R_.pet("unicorn"), R_.tok(50000), R_.cos("t:s1champ")]];
+const PASS_PREMR = [R_.tok(2500), R_.cs("royal"), R_.ch("s1crystal"), R_.tok(5000), R_.cs("gilded"), R_.cos("av:🦭"), R_.tok(7500), R_.cs("emerald"), R_.cos("t:s1elite"), R_.sk(3),
+  R_.tok(10000), R_.cs("inferno"), R_.ch("s1orb"), R_.cos("bn:blizzard"), R_.tok(15000), R_.cs("frost"), R_.cos("c:glacier"), R_.tok(20000), R_.cs("phantom"), R_.sk(4),
+  R_.tok(25000), R_.ch("s1star"), R_.cs("phantom"), R_.cos("av:🐧"), R_.tok(30000), R_.cs("phantom"), R_.tok(40000), R_.cos("t:s1legend"), R_.tok(50000),
+  [R_.sk(5), R_.tok(100000)]];
+function rewardInfo(r){
+  if(r.t === "tok") return { ic:"◆", n:`${fmtBig(r.v)} tokens` };
+  if(r.t === "case"){ const c = crateOf(r.c); return { ic:"📦", n:`Free ${c.n}` }; }
+  if(r.t === "charm"){ const c = charmOf(r.id); return { ic:c.e, n:`${c.n} charm` }; }
+  if(r.t === "pet"){ const p = PETS[r.id]; return { ic:p.ic, n:`${p.n} pet (+${Math.round(p.b*100)}%)` }; }
+  if(r.t === "skin"){ const sk = seasonSkin(seasonNow(), "duke", r.n); return { ic:"🔫", n:`${sk.s} skin`, rar:sk.r }; }
+  if(r.t === "cos"){ const [k, id] = [r.k.slice(0, r.k.indexOf(":")), r.k.slice(r.k.indexOf(":") + 1)];
+    if(k === "av") return { ic:id, n:"Avatar" }; if(k === "c"){ const c = NAME_COLS.find(x => x.id === id); return { ic:"🎨", n:`${c ? c.n : id} name colour` }; }
+    if(k === "t"){ const t = TITLES.find(x => x.id === id); return { ic:"🏷️", n:`"${t ? t.n : id}" title` }; } if(k === "bn"){ const b = BANNERS.find(x => x.id === id); return { ic:"🖼️", n:`${b ? b.n : id} banner` }; } }
+  return { ic:"🎁", n:"Reward" };
+}
+function ensurePass(a){ const sn = seasonNow(); if(!a.pass || a.pass.s !== sn) a.pass = { s:sn, xp:0, f:[], p:[], prem:false }; return a.pass; }
+const passTier = a => Math.min(PASS_TIERS, Math.floor(ensurePass(a).xp / PASS_XP));
+function passXP(n, why){
+  const a = me(); if(!a || !(n > 0)) return; const P = ensurePass(a), before = passTier(a); P.xp += Math.round(n); const after = passTier(a);
+  if(after > before){ toast(`🎟️ Season pass tier ${after}! Claim your reward in the Arena.`); tone(784,.12,"triangle",.07); tone(1047,.2,"triangle",.07,.1); }
+  saveSoon(2000); passBadge();
+}
+const passClaimable = a => { const P = ensurePass(a), t = passTier(a); let n = 0; for(let i=1;i<=t;i++){ if(!P.f.includes(i)) n++; if(P.prem && !P.p.includes(i)) n++; } return n; };
+function giveReward(a, r, msgs){
+  const c = ensureCos(a);
+  if(r.t === "tok"){ a.balance = capNum(a.balance + r.v, MAX_BAL); msgs.push(`+${fmt(r.v)} tokens`); }
+  if(r.t === "charm"){ c.ch[r.id] = (c.ch[r.id] || 0) + 1; msgs.push(`${charmOf(r.id).e} ${charmOf(r.id).n} charm`); }
+  if(r.t === "cos"){ c.own[r.k] = 1; msgs.push(rewardInfo(r).n); }
+  if(r.t === "pet"){ c.own["p:" + r.id] = 1; if(c.pets.length < PET_MAX) c.pets.push(r.id); msgs.push(`${PETS[r.id].ic} ${PETS[r.id].n}${c.pets.length >= PET_MAX && !c.pets.includes(r.id) ? " (your pets are full: send one away in the Shop to make room)" : ""}`); }
+  if(r.t === "skin"){ const g = currentGun() || "duke", k = `season:${seasonNow()}:${g}:${r.n}`, f = Math.round(rand()*.07*100000)/100000; a.inv.push({ id:uid(), k, f, v:itemValue(k, f), t:Date.now(), n:1 }); msgs.push(`${itemName({ k })} for your ${WEAP[g].n}`); }
+  if(r.t === "case"){ const cr = crateOf(r.c), pool = ownedGuns(a);
+    if(!pool.length){ a.balance = capNum(a.balance + cr.price, MAX_BAL); msgs.push(`${fmt(cr.price)} tokens (no gun yet for the ${cr.n})`); }
+    else { const it = rollItem(cr, pool); it.n = 1; a.inv.push(it); msgs.push(`${cr.n}: ${itemName(it)}`); } }
+}
+function claimTier(i, prem){
+  const a = me(), P = ensurePass(a); if(i > passTier(a)) return; const list = prem ? P.p : P.f; if(list.includes(i)) return; if(prem && !P.prem) return;
+  list.push(i); const r = (prem ? PASS_PREMR : PASS_FREE)[i - 1], msgs = []; (Array.isArray(r) ? r : [r]).forEach(x => giveReward(a, x, msgs));
+  save(); refresh(); bumpChips(); i === PASS_TIERS ? (sfx.big(), confetti()) : sfx.win(); toast(`🎁 ${msgs.join(" · ")}`);
+  if(typeof cosApply3D === "function") cosApply3D(); renderPass(); passBadge();
+}
+// ---------- pass window ----------
+document.body.insertAdjacentHTML("beforeend", `
+<div class="modal" id="passModal" hidden><div class="panel wide pass-panel">
+  <div class="shop-top"><h2 id="passTitle">🎟️ Season 1</h2><button class="shop-x" data-pclose aria-label="Close">✕</button></div>
+  <div class="pass-prog"><div class="pass-tier"><b id="passTier">0</b><small>tier</small></div><div class="pass-bar"><div class="bar"><i id="passBar"></i></div><small id="passXp"></small></div></div>
+  <div id="passPremBox"></div>
+  <details class="pass-how"><summary>How to earn pass XP</summary><p>Arena runs: up to 40 · Live versus: 15, or 40 for a win · Missions: 30 each · Daily login: 25 · Daily spin: 15. Every ${PASS_XP} XP is a new tier. Season skins and charms never come back once the season ends.</p></details>
+  <div class="pass-list" id="passList"></div>
+</div></div>`);
+$("#passModal").addEventListener("click", e => { if(e.target.id === "passModal" || e.target.closest("[data-pclose]")) $("#passModal").hidden = true; });
+let premSure = 0;
+function openPass(){ if(!me()) return; premSure = 0; $$(".modal:not([data-lock])").forEach(m => m.hidden = true); $("#passModal").hidden = false; renderPass(true); sfx.click(); }
+function renderPass(scroll){
+  const a = me(); if(!a) return; const P = ensurePass(a), t = passTier(a), sn = seasonNow(), left = seasonEnds() - Date.now(), days = Math.ceil(left / 864e5);
+  $("#passTitle").textContent = `🎟️ Season ${sn} · ${themeOf(sn).w}`;
+  $("#passTier").textContent = t; const into = t >= PASS_TIERS ? PASS_XP : P.xp - t*PASS_XP; $("#passBar").style.width = (into / PASS_XP * 100) + "%";
+  $("#passXp").textContent = t >= PASS_TIERS ? `All 30 tiers done! ${fmt(P.xp)} XP` : `${fmt(into)} / ${PASS_XP} XP to tier ${t + 1} · ends in ${days} day${days === 1 ? "" : "s"}`;
+  $("#passPremBox").innerHTML = P.prem ? `<div class="pass-prem on">⭐ Premium track unlocked</div>`
+    : `<div class="pass-prem"><div><b>⭐ Premium track</b><small>Extra rewards on every tier, including a Gold season skin and ${fmt(100000)} tokens at tier 30. Unlocks everything you've already reached.</small></div><button class="btn small gold" id="passBuy">${premSure ? `Tap again: ◆ ${fmtBig(PASS_PREM)}` : `Unlock ◆ ${fmtBig(PASS_PREM)}`}</button></div>`;
+  const cell = (r, i, prem) => { const list = Array.isArray(r) ? r : [r], got = (prem ? P.p : P.f).includes(i), open = i <= t, locked = prem && !P.prem;
+    const info = list.map(rewardInfo);
+    return `<div class="pr ${prem ? "prem" : "free"} ${got ? "got" : ""} ${open && !got && !locked ? "ready" : ""}"><div class="pr-ic">${info.map(x => `<span>${x.ic}</span>`).join("")}</div><div class="pr-n">${info.map(x => x.n).join(" + ")}</div>
+      ${got ? `<span class="pr-tag">✓</span>` : locked ? `<span class="pr-tag">🔒</span>` : open ? `<button class="btn small ${prem ? "purple" : "gold"}" data-claim-t="${i}" data-prem="${prem ? 1 : ""}">Claim</button>` : `<span class="pr-tag">${i}</span>`}</div>`; };
+  $("#passList").innerHTML = `<div class="pass-row head"><span></span><b>Free</b><b>⭐ Premium</b></div>` + Array.from({ length:PASS_TIERS }, (_, k) => k + 1).map(i =>
+    `<div class="pass-row ${i <= t ? "open" : ""} ${i === PASS_TIERS ? "big" : ""}" data-tier="${i}"><span class="pt">${i}</span>${cell(PASS_FREE[i - 1], i, false)}${cell(PASS_PREMR[i - 1], i, true)}</div>`).join("");
+  const pb = $("#passBuy"); if(pb) pb.onclick = () => { const a2 = me(); if(a2.balance < PASS_PREM) return toast(`You need ${fmtBig(PASS_PREM - a2.balance)} more tokens`);
+    if(!premSure){ premSure = Date.now(); renderPass(); return; } if(Date.now() - premSure > 6000){ premSure = 0; renderPass(); return; }
+    a2.balance -= PASS_PREM; ensurePass(a2).prem = true; premSure = 0; save(); refresh(); bumpChips(); sfx.big(); confetti(); toast("⭐ Premium track unlocked!"); renderPass(); passBadge(); };
+  if(scroll){ const row = $(`#passList [data-tier="${Math.max(1, Math.min(PASS_TIERS, t))}"]`); if(row) setTimeout(() => row.scrollIntoView({ block:"center" }), 30); }
+  renderPassCard();
+}
+$("#passList").addEventListener("click", e => { const b = e.target.closest("[data-claim-t]"); if(!b) return; claimTier(+b.dataset.claimT, !!b.dataset.prem); });
+function renderPassCard(){
+  const box = $("#passCard"), a = me(); if(!box || !a) return; const P = ensurePass(a), t = passTier(a), n = passClaimable(a), into = t >= PASS_TIERS ? PASS_XP : P.xp - t*PASS_XP;
+  box.innerHTML = `<div class="pc-top"><span class="pc-ic">🎟️</span><div><b>Season ${seasonNow()} pass · Tier ${t}/${PASS_TIERS}</b><small>${t >= PASS_TIERS ? "Complete!" : `${into}/${PASS_XP} XP to the next tier`}${P.prem ? " · ⭐ Premium" : ""}</small></div>
+    <button class="btn small ${n ? "gold" : "purple"}" id="passOpen">${n ? `Claim ${n}` : "Open"}</button></div><div class="bar"><i style="width:${into / PASS_XP * 100}%"></i></div>`;
+  $("#passOpen").onclick = openPass;
+}
+function passBadge(){ const a = me(); if(!a) return; renderPassCard(); const n = passClaimable(a), pb = $("#passBtn"); if(pb) pb.textContent = n ? `🎟️ Pass (${n})` : "🎟️ Season pass"; }
+$("#arenaView .page-inner .load-wrap").insertAdjacentHTML("beforebegin", `<div class="wcard pass-card" id="passCard"></div>`);
+$("#meView .shop-row").insertAdjacentHTML("beforeend", `<button class="btn" id="passBtn">🎟️ Season pass</button>`);
+$("#passBtn").onclick = openPass;
+
+// ---------- after every Arena run: pass XP and kill counters ----------
+function passAfterRun(id, diff, s, L, extra){
+  const a = me(); if(!a) return;
+  if(L && L.item){ const it = a.inv.find(x => x.id === L.item.id); if(it && it.kc !== undefined && s.kills > 0){ it.kc += s.kills; } }
+  if(extra && extra.live && !extra.versus) return passXP(15, "duel");
+  const par = parFor(id, diff), score = Math.max(0, Math.round(s.score || 0));
+  if(!(extra && extra.versus)) passXP(10 + Math.round(clamp(score / par, 0, 2) * 15), "run");
+}
+
+// ---------- kill counter + charm controls in the skin menu ----------
+function passItemExtras(it){
+  const box = $("#imActions"); if(!box || it.adm || String(it.k).startsWith("stock:")) return; const a = me(), c = ensureCos(a);
+  const owned = CHARMS.filter(x => (c.ch[x.id] || 0) > 0), ch = it.ch && charmOf(it.ch);
+  box.insertAdjacentHTML("afterbegin", `<div class="kc-box">
+    <div class="kc-line">${it.kc !== undefined ? `<span class="kc-big">☠ ${fmt(it.kc)}</span><small>Arena kills with this skin</small>` : `<span>☠ <b>Kill counter</b><small>Counts your Arena kills and adds 25% to the skin's value</small></span><button class="btn small gold" id="kcBuy">Add for ◆ ${fmt(KC_PRICE)}</button>`}</div>
+    <div class="kc-line">${ch ? `<span class="ch-on">${ch.e} <b>${ch.n}</b> charm</span><button class="btn small ghost" id="chOff">Take off</button>` : `<span>🧸 <b>Charm</b><small>${owned.length ? "Pick one to hang on this skin" : "Get charms in the Shop or the season pass"}</small></span>`}</div>
+    ${!ch && owned.length ? `<div class="chip-grid ch-pick">${owned.map(x => `<button data-chon="${x.id}">${x.e} ${x.n}${c.ch[x.id] > 1 ? ` ×${c.ch[x.id]}` : ""}</button>`).join("")}</div>` : ""}</div>`);
+  const kb = $("#kcBuy"); if(kb) kb.onclick = () => { const a2 = me(), x = a2.inv.find(q => q.id === it.id); if(!x || x.kc !== undefined) return; if(a2.balance < KC_PRICE) return toast(`You need ${fmt(KC_PRICE - a2.balance)} more tokens`);
+    a2.balance -= KC_PRICE; x.kc = 0; x.v = Math.round(x.v * 1.25); save(); refresh(); bumpChips(); sfx.buy(); toast("☠ Kill counter added"); openItem(it.id); armRender(); };
+  const off = $("#chOff"); if(off) off.onclick = () => { const a2 = me(), x = a2.inv.find(q => q.id === it.id); if(!x || !x.ch) return; const c2 = ensureCos(a2); c2.ch[x.ch] = (c2.ch[x.ch] || 0) + 1; delete x.ch; save(); sfx.click(); openItem(it.id); armRender(); };
+  box.querySelectorAll("[data-chon]").forEach(b => b.onclick = () => { const a2 = me(), x = a2.inv.find(q => q.id === it.id), c2 = ensureCos(a2), id = b.dataset.chon; if(!x || x.ch || !(c2.ch[id] > 0)) return;
+    c2.ch[id]--; if(!c2.ch[id]) delete c2.ch[id]; x.ch = id; save(); sfx.buy(); toast(`${charmOf(id).e} Charm attached`); openItem(it.id); armRender(); });
+}
+// 3D: a little hanging charm and an orange kill-count screen on the gun
+const EMOJI_TEX = {};
+function emojiTex(e){ return EMOJI_TEX[e] || (EMOJI_TEX[e] = canvasTex(96, 96, (x, W) => { x.clearRect(0, 0, W, W); x.font = "72px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, W/2, W/2 + 4); })); }
+function gunExtras(holder, item, len){
+  if(!item) return;
+  const ch = item.ch && charmOf(item.ch);
+  if(ch){ const piv = new THREE.Group(); piv.position.set(-len*.34, -len*.1, 0); holder.add(piv);
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(len*.004, len*.004, len*.09, 4), new THREE.MeshBasicMaterial({ color:"#d8d8d8" })); cord.position.y = -len*.045; piv.add(cord);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(len*.012, len*.003, 6, 12), new THREE.MeshStandardMaterial({ color:"#d8d8d8", metalness:.8, roughness:.3 })); piv.add(ring);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:emojiTex(ch.e), transparent:true, depthWrite:false })); s.scale.setScalar(len*.13); s.position.y = -len*.14; piv.add(s);
+    piv.userData.tick = t => { piv.rotation.z = Math.sin(t*2.6)*.28; piv.rotation.x = Math.sin(t*1.9)*.18; }; }
+  if(item.kc !== undefined){ const tex = canvasTex(128, 48, (x, W, H) => { x.fillStyle = "#140a04"; x.fillRect(0, 0, W, H); x.strokeStyle = "#5a3a1a"; x.lineWidth = 3; x.strokeRect(1, 1, W - 2, H - 2);
+      x.fillStyle = "#ff8a1a"; x.shadowColor = "#ff6a00"; x.shadowBlur = 8; x.font = "bold 30px 'JetBrains Mono', monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(String(Math.min(999999, item.kc)).padStart(6, "0"), W/2, H/2 + 1); });
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(len*.15, len*.056), new THREE.MeshBasicMaterial({ map:tex })); p.position.set(len*.02, len*.02, len*.045); holder.add(p);
+    const p2 = p.clone(); p2.position.z = -len*.045; p2.rotation.y = Math.PI; holder.add(p2); }
+}
+// ===================== LIVE VERSUS: race a friend (or a random player) on the same targets =====================
+// Both players get the same seed, so the same targets in the same order. Highest score after the run wins the pot.
+const VS_BETS = [0, 100, 500, 1000, 5000], VS_QUEUE_MS = 120000;
+let vsBet = 0, vsWait = null, vsTimer = null, vsSync = null, vsOpp = { s:0, t:0, fin:false };
+const vsGameN = id => `${gameOf(id).ico} ${gameOf(id).n}`;
+function vsRefund(id, bet, why){ if(!bet || isDone("ref:" + id)) return; const a = me(); markDone("ref:" + id); a.balance = capNum(a.balance + bet, MAX_BAL); save(); refresh(); if(why) toast(`${why} Your ${fmt(bet)} token bet is back.`); }
+function vsPay(bet){ const a = me(); if(a.balance < bet) return false; a.balance -= bet; save(); refresh(); return true; }
+
+// ---------- the versus window ----------
+function openVersus(game, oppName){
+  if(!ONLINE) return toast("Live versus needs online play. Log in on the website.");
+  if(vsWait) return toast("You're already waiting for a match");
+  $("#chTitle").textContent = `⚔️ Versus · ${gameOf(game).n}`;
+  const names = playersCache.filter(p => p.key && p.key !== onlineKey).sort((x, y) => (y.seen || 0) - (x.seen || 0)).slice(0, 8);
+  $("#chBody").innerHTML = `<p class="muted" style="margin:0">Same targets for both of you, up to 2:30 each. You both see the other's score live. Highest score wins the pot.</p>
+    <div class="label">Bet (each player puts in)</div>
+    <div class="chips vs-bets" id="vsBets">${VS_BETS.map(b => `<button class="chip ${b === vsBet ? "on" : ""}" data-b="${b}">${b ? fmt(b) + " ◆" : "Just for fun"}</button>`).join("")}</div>
+    <input id="vsBetIn" class="amt" inputmode="decimal" placeholder="Or type a bet, e.g. 2.5k" autocomplete="off" aria-label="Bet">
+    <button class="btn purple big" id="vsRandom">🎲 Find a random opponent</button>
+    <div class="label">Or challenge someone</div>
+    <div class="bet-row"><input id="vsUser" placeholder="Username" autocomplete="off" value="${esc(oppName || "")}" aria-label="Username"><button class="btn" id="vsSend">Challenge</button></div>
+    ${names.length ? `<div class="chips">${names.map(p => `<button class="chip ${Date.now() - (p.seen || 0) < 120000 ? "on" : ""}" data-u="${esc(p.name)}">${esc(p.name)}</button>`).join("")}</div>` : ""}
+    <div class="result" id="vsRes"></div>`;
+  $("#chalModal").hidden = false;
+  const res = (t, c) => { const r = $("#vsRes"); r.textContent = t; r.className = "result " + (c || ""); };
+  const betNow = () => { const typed = parseAmt($("#vsBetIn").value); return typed >= 0 && $("#vsBetIn").value.trim() ? typed : vsBet; };
+  $("#vsBets").onclick = e => { const b = e.target.closest("[data-b]"); if(!b) return; vsBet = +b.dataset.b; $("#vsBetIn").value = ""; $$("#vsBets .chip").forEach(x => x.classList.toggle("on", x === b)); sfx.click(); };
+  $("#chBody").querySelectorAll("[data-u]").forEach(c => c.onclick = () => { $("#vsUser").value = c.dataset.u; });
+  $("#vsSend").onclick = async () => {
+    const bet = betNow(); if(!(bet >= 0)) return res("Type a bet like 500 or 2.5k", "lose"); if(me().balance < bet) return res("You don't have enough tokens for that bet", "lose");
+    const p = await findPlayer($("#vsUser").value); if(!p) return res("No player with that username.", "lose"); if(p.key === onlineKey) return res("You can't challenge yourself.", "lose");
+    $("#vsSend").disabled = true;
+    try{ if(!vsPay(bet)) throw 0; const seed = 1 + randInt(2e9);
+      const ref = await NET.db.collection("duels").add({ from:onlineKey, fromName:me().name, to:p.key, toName:p.name, mode:"lv", game, bet, seed, status:"pending", t:Date.now() });
+      vsWaitFor({ kind:"invite", id:ref.id, game, bet, seed, opp:p.name, oppKey:p.key, t:Date.now() });
+    }catch(e){ res("Couldn't send. Try again.", "lose"); const sb = $("#vsSend"); if(sb) sb.disabled = false; }
+  };
+  $("#vsRandom").onclick = async () => { const bet = betNow(); if(!(bet >= 0)) return res("Type a bet like 500 or 2.5k", "lose"); if(me().balance < bet) return res("You don't have enough tokens for that bet", "lose");
+    $("#vsRandom").disabled = true; try{ await vsFindRandom(game, bet); }catch(e){ res("Couldn't reach the server. Try again.", "lose"); const b = $("#vsRandom"); if(b) b.disabled = false; } };
+}
+function vsWaitUI(text, sub){
+  $("#chBody").innerHTML = `<div class="live-wait"><div class="spinner"></div><b>${text}</b><p class="muted">${sub}</p><button class="btn ghost" id="vsCancel">Cancel</button></div>`;
+  $("#chalModal").hidden = false; $("#vsCancel").onclick = vsCancel;
+}
+function vsWaitFor(w){
+  vsWait = w;
+  if(w.kind === "invite") vsWaitUI(`Waiting for ${esc(w.opp)}…`, `${vsGameN(w.game)}${w.bet ? ` · ${fmt(w.bet)} ◆ each` : ""}. They'll get a pop-up and see it in their Arena tab. It expires in 3 minutes.`);
+  else vsWaitUI("Looking for an opponent…", `${vsGameN(w.game)}${w.bet ? ` · ${fmt(w.bet)} ◆ each` : " · just for fun"}. Anyone who picks the same game and bet gets matched with you.`);
+  clearInterval(vsTimer); vsTimer = setInterval(vsTick, 1500);
+}
+async function vsCancel(){
+  const w = vsWait; vsWait = null; clearInterval(vsTimer); $("#chalModal").hidden = true; if(!w) return;
+  try{ const ref = NET.db.doc("duels/" + w.id), s = await ref.get(), cur = s.exists && s.data();
+    if(cur && (cur.status === "pending" || cur.status === "open")) await ref.update({ status:"cancelled" });
+    else if(cur && w.kind === "queue" && cur.status === "matched"){ toast("Someone just matched you!"); return vsJoinMatched(w, cur); } }catch(e){}
+  vsRefund(w.id, w.bet, "Cancelled.");
+}
+async function vsTick(){
+  const w = vsWait; if(!w){ clearInterval(vsTimer); return; }
+  try{
+    const s = await NET.db.doc("duels/" + w.id).get(), d = s.exists && s.data(); if(!d || vsWait !== w) return;
+    if(w.kind === "invite"){
+      if(d.status === "live"){ vsWait = null; clearInterval(vsTimer); $("#chalModal").hidden = true; return vsStart({ id:w.id, game:w.game, bet:w.bet, seed:w.seed, side:"a", opp:w.opp, oppKey:w.oppKey }); }
+      if(d.status === "declined" || d.status === "cancelled"){ vsWait = null; clearInterval(vsTimer); $("#chalModal").hidden = true; return vsRefund(w.id, w.bet, `${w.opp} said no.`); }
+      if(Date.now() - w.t > 180000){ vsWait = null; clearInterval(vsTimer); $("#chalModal").hidden = true; try{ await NET.db.doc("duels/" + w.id).update({ status:"cancelled" }); }catch(e){} return vsRefund(w.id, w.bet, "Nobody answered."); }
+    } else {
+      if(d.status === "matched") return vsJoinMatched(w, d);
+      if(Date.now() - w.t > VS_QUEUE_MS){ vsWait = null; clearInterval(vsTimer); $("#chalModal").hidden = true; try{ await NET.db.doc("duels/" + w.id).update({ status:"cancelled" }); }catch(e){} return vsRefund(w.id, w.bet, "Nobody else is looking right now. Try again or challenge a friend."); }
+      await NET.db.doc("duels/" + w.id).update({ t:Date.now() });   // heartbeat so others know you're still here
+      // if two people queued at the same moment, the one with the later name does the matching
+      const other = (await vsOpenQueue(w.game, w.bet)).find(q => q.from !== onlineKey && q.from < onlineKey);
+      if(other){ vsWait = null; clearInterval(vsTimer); try{ await NET.db.doc("duels/" + w.id).update({ status:"cancelled" }); }catch(e){} vsRefund(w.id, w.bet); await vsFindRandom(w.game, w.bet); }
+    }
+  }catch(e){}
+}
+async function vsOpenQueue(game, bet){
+  const s = await NET.db.collection("duels").where("mode", "==", "lvq").where("status", "==", "open").limit(200).get();
+  return s.docs.map(d => Object.assign({ id:d.id }, d.data())).filter(q => q.game === game && (q.bet || 0) === bet && Date.now() - (q.t || 0) < 15000);
+}
+async function vsFindRandom(game, bet){
+  const open = (await vsOpenQueue(game, bet)).filter(q => q.from !== onlineKey).sort((x, y) => x.t0 - y.t0);
+  for(const q of open){
+    const ref = NET.db.doc("duels/" + q.id); if(!(await lock(ref))) continue;
+    const s = await ref.get(), cur = s.exists && s.data(); if(!cur || cur.status !== "open") continue;
+    if(!vsPay(bet)) return toast("You don't have enough tokens for that bet");
+    const seed = 1 + randInt(2e9);
+    const dref = await NET.db.collection("duels").add({ from:onlineKey, fromName:me().name, to:q.from, toName:q.fromName, mode:"lv", game, bet, seed, status:"live", t:Date.now(), liveAt:Date.now(), random:true });
+    await ref.update({ status:"matched", duel:dref.id, byName:me().name });
+    $("#chalModal").hidden = true; return vsStart({ id:dref.id, game, bet, seed, side:"a", opp:q.fromName, oppKey:q.from });
+  }
+  if(!vsPay(bet)) return toast("You don't have enough tokens for that bet");
+  const ref = await NET.db.collection("duels").add({ from:onlineKey, fromName:me().name, mode:"lvq", game, bet, status:"open", t:Date.now(), t0:Date.now() });
+  vsWaitFor({ kind:"queue", id:ref.id, game, bet, opp:"", t:Date.now() });
+}
+async function vsJoinMatched(w, q){
+  vsWait = null; clearInterval(vsTimer); $("#chalModal").hidden = true; markDone("ref:" + w.id);   // the queue bet now belongs to the match
+  try{ const s = await NET.db.doc("duels/" + q.duel).get(), d = s.exists && s.data(); if(!d) throw 0;
+    vsStart({ id:q.duel, game:d.game, bet:d.bet, seed:d.seed, side:"b", opp:d.fromName, oppKey:d.from }); }catch(e){ vsRefund(w.id, w.bet, "The match fell through."); }
+}
+async function acceptVersus(d){
+  if(Date.now() - d.t > 180000) return toast("That versus expired.");
+  const ref = NET.db.doc("duels/" + d.id); await lock(ref);
+  const s = await ref.get(), cur = s.exists && s.data(); if(!cur || cur.status !== "pending") return toast("That versus is no longer open.");
+  if(me().balance < (cur.bet || 0)) return toast(`You need ${fmt(cur.bet)} tokens to join this bet`);
+  vsPay(cur.bet || 0);
+  await ref.update({ status:"live", liveAt:Date.now() });
+  vsStart({ id:d.id, game:cur.game, bet:cur.bet || 0, seed:cur.seed, side:"b", opp:cur.fromName, oppKey:cur.from });
+}
+
+// ---------- during the run ----------
+document.getElementById("arenaPlay").insertAdjacentHTML("beforeend", `<div class="ar-vs" id="arVs" hidden><div class="vs-side me"><small>You</small><b id="vsMe">0</b></div><div class="vs-bar"><i id="vsBarMe"></i></div><div class="vs-side opp"><small id="vsOppN">Them</small><b id="vsOpp">0</b></div></div>`);
+function vsStart(live){
+  if(AR.running) return;
+  $$(".modal:not([data-lock])").forEach(m => m.hidden = true); showView("arena");
+  arSel = { game:live.game, diff:"normal", wager:0, chal:null, live:Object.assign({ kind:"lv" }, live) };
+  vsOpp = { s:0, t:Date.now(), fin:false }; $("#vsOppN").textContent = live.opp; $("#vsMe").textContent = "0"; $("#vsOpp").textContent = "0";
+  toast(`⚔️ Versus vs ${live.opp}${live.bet ? ` · pot ${fmt(live.bet*2)} ◆` : ""}`); tone(660,.1,"triangle",.07); tone(990,.15,"triangle",.07,.1);
+  setTimeout(() => { AR.start(live.game, "normal"); $("#arVs").hidden = false; }, 900);
+  clearInterval(vsSync); vsSync = setInterval(vsPush, 1500);
+}
+const sideId = (live, mine) => `duels/${live.id}-${(live.side === "a") === mine ? "a" : "b"}`;
+async function vsPush(fin, score, liveArg){
+  const live = liveArg || arSel.live; if(!live || live.kind !== "lv"){ clearInterval(vsSync); return; }
+  const mine = fin ? score : AR.score;
+  try{ await NET.db.doc(sideId(live, true)).set({ from:onlineKey, mode:"lvs", s:Math.round(mine || 0), fin:!!fin, t:Date.now() }); }catch(e){}
+  try{ const s = await NET.db.doc(sideId(live, false)).get(); if(s.exists){ const d = s.data(); vsOpp = { s:d.s || 0, t:d.t || 0, fin:!!d.fin }; } }catch(e){}
+  vsHud();
+}
+function vsHud(){ const m = Math.max(0, AR.score || 0), o = Math.max(0, vsOpp.s); $("#vsMe").textContent = fmt(m); $("#vsOpp").textContent = vsOpp.s < 0 ? "quit" : fmt(o) + (vsOpp.fin ? " ✓" : "");
+  $("#vsBarMe").style.width = (m + o ? m / (m + o) * 100 : 50) + "%"; }
+function versusQuit(){ const live = arSel.live; clearInterval(vsSync); $("#arVs").hidden = true; if(!live) return; vsPush(true, -1, live); arSel.live = null;
+  if(!isDone(live.id)){ markDone(live.id); save(); } toast(live.bet ? `You left the versus and lost your ${fmt(live.bet)} token bet.` : "You left the versus."); }
+// ---------- the result ----------
+async function finishVersus(id, s, extra){
+  const live = arSel.live; arSel.live = null; clearInterval(vsSync); $("#arVs").hidden = true;
+  const score = Math.max(0, Math.round(s.score)); await vsPush(true, score, live);
+  missionEvent("run", 1); missionEvent("kills", s.kills); missionEvent("crits", s.crits);
+  $("#arChal").hidden = true; $("#arAgain").textContent = "Rematch";
+  const m = $("#arResModal"); m.dataset.g = live.game; m.dataset.d = "normal"; m.dataset.live = ""; m.dataset.vs = JSON.stringify({ game:live.game, opp:live.opp });
+  const paint = html => { $("#arResBody").innerHTML = `<div class="res-head"><div class="res-ico">⚔️</div><div><h2>Versus · ${gameOf(live.game).n}</h2><small>vs ${esc(live.opp)}${live.bet ? ` · pot ${fmt(live.bet*2)} ◆` : ""}</small></div></div>${html}`; };
+  m.hidden = false;
+  let o = null; const t0 = Date.now();
+  for(;;){
+    try{ const sn = await NET.db.doc(sideId(live, false)).get(); o = sn.exists ? sn.data() : null; }catch(e){}
+    if(o && o.fin) break;
+    const stale = o ? Date.now() - (o.t || 0) > 30000 : Date.now() - t0 > 45000;
+    if(stale){ o = { s:-1, fin:true, gone:true }; break; }
+    paint(`<div class="res-score"><b>${fmt(score)}</b><span>your score</span></div><div class="live-wait"><div class="spinner"></div><b>Waiting for ${esc(live.opp)} to finish…</b><p class="muted">Their score so far: ${fmt(Math.max(0, (o && o.s) || 0))}</p></div>`);
+    if(Date.now() - t0 > (VS_CAP + 60) * 1000){ o = { s:-1, fin:true, gone:true }; break; }
+    await wait(1500);
+  }
+  const theirs = o.s, win = score > theirs, tie = score === theirs, a = me();
+  let note = "";
+  if(!isDone(live.id)){ markDone(live.id);
+    if(tie){ if(live.bet) a.balance = capNum(a.balance + live.bet, MAX_BAL); note = live.bet ? `Draw! Your ${fmt(live.bet)} ◆ is back.` : "Draw!"; }
+    else if(win){ if(live.bet) a.balance = capNum(a.balance + live.bet*2, MAX_BAL); note = live.bet ? `+${fmt(live.bet*2)} ◆` : "Bragging rights"; unlock("alive"); }
+    else note = live.bet ? `−${fmt(live.bet)} ◆` : "";
+    passXP(win ? 40 : 15, "versus");
+    try{ await NET.db.doc("duels/" + live.id).update({ status:"done", winner: tie ? "" : win ? onlineKey : (live.oppKey || ""), doneAt:Date.now(), [live.side === "a" ? "sa" : "sb"]:score, [live.side === "a" ? "sb" : "sa"]:theirs }); }catch(e){}
+    save(); refresh(); }
+  paint(`<div class="res-score"><b>${tie ? "DRAW" : win ? "YOU WIN" : "YOU LOSE"}</b><span>${o.gone ? `${esc(live.opp)} left the match` : ""}</span></div>
+    <div class="duel-table"><div class="duel-row head"><span></span><b>You</b><b>${esc(live.opp)}</b></div><div class="duel-row ${win ? "win" : tie ? "tie" : "lose"}"><span>Score</span><b>${fmt(score)}</b><b>${theirs < 0 ? "quit" : fmt(theirs)}</b></div></div>
+    ${note ? `<div class="res-rew"><span class="tok">${note}</span><span>+${win ? 40 : 15} pass XP</span></div>` : ""}`);
+  win ? (sfx.big(), confetti()) : tie ? sfx.win() : sfx.lose(); if(win && live.bet) bumpChips();
+}
+$("#arAgain").addEventListener("click", e => { const m = $("#arResModal"); if(!m.dataset.vs) return; e.stopImmediatePropagation(); const v = JSON.parse(m.dataset.vs); m.dataset.vs = ""; m.hidden = true; openVersus(v.game, v.opp); }, true);
+$("#arBack").addEventListener("click", () => { $("#arResModal").dataset.vs = ""; }, true);
+// tidy up old queue entries / invites nobody answered (gives your bet back)
+async function vsSettleOut(list){
+  for(const d of list){
+    if(d.from !== onlineKey || isDone("ref:" + d.id)) continue;
+    const stale = (d.mode === "lvq" && d.status === "open" && Date.now() - (d.t || 0) > 30000 && (!vsWait || vsWait.id !== d.id)) || (d.mode === "lv" && d.status === "pending" && Date.now() - d.t > 180000 && (!vsWait || vsWait.id !== d.id));
+    if(stale){ try{ await NET.db.doc("duels/" + d.id).update({ status:"cancelled" }); }catch(e){} vsRefund(d.id, d.bet || 0, "An old versus expired."); }
+    if(d.mode === "lv" && (d.status === "declined" || d.status === "cancelled") && (!vsWait || vsWait.id !== d.id)) vsRefund(d.id, d.bet || 0);
+    if(d.mode === "lvq" && d.status === "cancelled" && (!vsWait || vsWait.id !== d.id) && !isDone("ref:" + d.id)) vsRefund(d.id, d.bet || 0);
+  }
+}
 // ===================== LOFI MUSIC (generated live, no audio files) =====================
 // Jazzy electric-piano chords, a soft bass, swung lofi drums, a sparse melody and vinyl crackle.
 const LOFI = (() => {
