@@ -909,6 +909,9 @@ svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke
 .adm-tag{display:inline-block;align-self:flex-start;font-style:normal;font-size:.62rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:linear-gradient(90deg,#ff3b5c,#9b5de5);border-radius:6px;padding:1px 6px;box-shadow:0 0 8px rgba(255,59,92,.45);white-space:nowrap}
 .pf-txt .adm-tag{margin-bottom:3px}
 .cm-name i.adm-tag,.rank-row i.adm-tag{color:#fff;background:linear-gradient(90deg,#ff3b5c,#9b5de5);font-size:.6rem;padding:1px 5px;border-radius:6px}
+/* stop item cards getting squashed in scrolling grids with lots of skins */
+.inv-grid{grid-auto-rows:max-content;align-content:start}
+.inv-grid .itm{flex-shrink:0}
 /* ===================== DARK MODE (pure black) ===================== */
 html[data-theme=dark]{color-scheme:dark;--sky:#000;--sky2:#000;--tx:#f2f2f5;--muted:#9a9aa8;--card:#0e0e11;--edge:#26262e;--s2:#16161b;--s3:#202027;--line2:#2c2c35}
 html[data-theme=dark] body{background:#000;color:var(--tx)}
@@ -941,6 +944,7 @@ html[data-theme=dark] :is(.shop-tabs button,.seg button){color:var(--muted)}
 .theme-seg{grid-template-columns:repeat(3,1fr)!important}
 html[data-theme=dark] .toast{background:#24242c;color:#fff;border:1px solid #3a3a44}
 html[data-theme=dark] .sheet-tabs button[aria-pressed=true]{background:#f2f2f5;color:#000}
+html[data-theme=dark] .tabbar button[aria-selected=true]{color:#fff}
 </style>
 </head>
 <body>
