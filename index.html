@@ -1431,6 +1431,7 @@ function enter(){
   netUI();
   $("#auth").hidden = true; $("#app").hidden = false;
   refresh(); factoryStart(); showView("factory"); checkStreak(); arenaBadge();
+  { const a = me(); if(a._wipeMsg){ const w = a._wipeMsg; delete a._wipeMsg; save(); setTimeout(() => toast(`Go Public shares were reset for everyone (yours: ${fmtBig(w.lost)}). Sorry gift: +${fmt(w.gift)} tokens`), 2500); } }
   if(!storageOK) setTimeout(()=>toast("This browser blocks saved data, so progress resets when you close the page."), 900);
 }
 const ACH = [
@@ -1547,13 +1548,17 @@ UPG.sort((a,b)=>a.cost-b.cost);
 function ensureFac(a){
   const d = { cash:15, run:0, total:0, shares:0, lv:Array(10).fill(0), up:[], vl:0, auto:false, vault:0, last:Date.now(), taps:0, golden:0, ipo:0, rb:0, mode:"1", frenzy:0, tapBoost:0 };
   a.fac = Object.assign(d, a.fac || {});
+  // one-off: everyone's Go Public shares were wiped after the old formula gave out far too many.
+  // Players get 1 token per 100 shares they lost (max 10,000) as a sorry.
+  if(!a.fac.wipe1){ const lost = a.fac.shares || 0; a.fac.wipe1 = 1; a.fac.shares = 0;
+    if(lost > 0){ const gift = Math.min(10000, Math.floor(lost / 100)); a.balance = capNum((a.balance || 0) + gift, MAX_BAL); a._wipeMsg = { lost, gift }; } }
   if(!Array.isArray(a.fac.lv) || a.fac.lv.length !== 10) a.fac.lv = Array(10).fill(0);
   ["cash","run","total","vault","shares"].forEach(k => { if(!(a.fac[k] >= 0) || !isFinite(a.fac[k])) a.fac[k] = 0; });
 }
 const F = () => me().fac;
 const msCount = L => MS.filter(m => L >= m).length;
 const nextMs = L => MS.find(m => L < m);
-const shareMult = () => (1 + F().shares * 0.02) * rbMult();
+const shareMult = () => (1 + F().shares * 0.01) * rbMult();
 const rbMult = () => 1 + (F().rb || 0);                        // Rebirth: ×2, ×3, ×4 ...
 const rbNeed = n => 1e9 * Math.pow(25, n);                     // cash earned this run to rebirth
 const now = () => Date.now();
@@ -1578,7 +1583,10 @@ function buyCount(i){
 }
 const unlocked = i => i === 0 || F().lv[i-1] > 0;
 const vaultCap = () => VC[Math.min(F().vl, VC.length-1)] * Math.max(1, incomeAll());
-const sharesAvail = () => Math.floor(Math.sqrt(F().run / 1e7));
+// shares come from ALL the cash you've ever printed (cube root, so each one costs more), minus what you already own
+const sharesPossible = total => Math.floor(10 * Math.cbrt(Math.max(0, total) / 1e9));
+const sharesAvail = () => Math.max(0, sharesPossible(F().total) - F().shares);
+const nextShareAt = () => Math.pow((sharesPossible(F().total) + 1) / 10, 3) * 1e9;
 
 // ===================== FACTORY: LOGIC =====================
 let lastLogic = 0, logicTimer = null, dirtyFac = false;
@@ -1588,7 +1596,7 @@ function logicTick(){
   const t = now(), dt = Math.min(30, (t - (lastLogic || t)) / 1000); lastLogic = t;
   const f = a.fac, inc = incomeAll(), si = stockIncome();
   f.gross = incomeGross();
-  if(si > 0){ addCash(si * dt); f.stockRate = si; dirtyFac = true; }
+  if(si > 0){ f.cash += si * dt; f.stockRate = si; dirtyFac = true; }
   if(inc > 0){
     if(f.auto){ addCash(inc * dt); }
     else { const cap = vaultCap(); f.vault = Math.min(cap, f.vault + inc * dt); }
@@ -1645,7 +1653,7 @@ function goPublic(){
   f.shares += n; f.ipo++; f.cash = 15; f.run = 0; f.lv = Array(10).fill(0); f.up = []; f.vault = 0; f.frenzy = 0; f.tapBoost = 0;
   me().xp = capNum(me().xp + 500, MAX_XP);
   unlock("ipo"); save(); factoryRebuild(); renderSheet(); confetti(); sfx.big();
-  toast(`You went public! +${fmtBig(n)} shares (+${fmtBig(n*2)}% income forever)`);
+  toast(`You went public! +${fmtBig(n)} shares (+${fmtBig(n)}% income forever)`);
 }
 
 // ===================== SHEET UI =====================
@@ -1689,11 +1697,11 @@ function renderSheet(){
   } else if(sheetTab === "stocks"){
     renderStocks(body);
   } else {
-    const n = sharesAvail(), need = Math.pow(n+1, 2) * 1e7;
-    body.innerHTML = `<div class="card-box" style="text-align:center"><div class="label">Shares owned</div><div class="big-num">${fmtBig(f.shares)}</div><p class="muted" style="margin:0">Each share boosts all income and taps by 2%. You have <b>+${fmtBig(f.shares*2)}%</b> now.</p></div>
+    const n = sharesAvail(), need = nextShareAt();
+    body.innerHTML = `<div class="card-box" style="text-align:center"><div class="label">Shares owned</div><div class="big-num">${fmtBig(f.shares)}</div><p class="muted" style="margin:0">Each share boosts all income and taps by 1%. You have <b>+${fmtBig(f.shares)}%</b> now.</p></div>
       <div class="card-box"><div class="label">Go Public now for</div><div class="big-num" style="color:var(--gold-d)">+${fmtBig(n)} shares</div>
-        <p class="muted" style="margin:0">Going public resets your printers, cash and upgrades, but you keep your shares, vault and Auto-Collector forever. Next share at ${money(need)} earned this run (now ${money(f.run)}).</p>
-        <button class="btn gold" id="pubBtn" ${n < 1 ? "disabled" : ""}>${n < 1 ? `Earn ${money(1e7)} this run to go public` : `Go Public · +${fmtBig(n)} shares`}</button></div>`;
+        <p class="muted" style="margin:0">Going public resets your printers, cash and upgrades, but you keep your shares, vault and Auto-Collector forever. Shares come from all the cash you've ever printed: next one at ${money(need)} lifetime (you're at ${money(f.total)}).</p>
+        <button class="btn gold" id="pubBtn" ${n < 1 ? "disabled" : ""}>${n < 1 ? `Print ${money(need)} lifetime for your next share` : `Go Public · +${fmtBig(n)} shares`}</button></div>`;
   }
   renderSheetLight();
 }
@@ -1718,7 +1726,7 @@ $("#sheetBody").addEventListener("click", e => {
   else if(b.id === "vaultUp"){ const f = F(), c = vaultCost(f.vl+1); if(f.cash >= c){ f.cash -= c; f.vl++; sfx.buy(); toast(`Vault holds ${fmtTime(VC[f.vl])} of income`); renderSheet(); saveSoon(1500); } }
   else if(b.id === "autoBuy"){ const f = F(); if(f.cash >= AUTO_COST){ f.cash -= AUTO_COST; f.auto = true; addCash(f.vault); f.vault = 0; sfx.buy(); toast("Auto-Collector installed!"); renderSheet(); saveSoon(1500); } }
   else if(b.id === "rbBtn"){ $("#rbText").innerHTML = `Your income multiplier goes from <b>×${rbMult()}</b> to <b>×${rbMult()+1}</b> forever. Printers, cash and upgrades reset to the start. Shares, vault size and the Auto-Collector stay.`; $("#rbModal").hidden = false; }
-  else if(b.id === "pubBtn"){ const n = sharesAvail(); $("#pubText").innerHTML = `You'll get <b>+${fmtBig(n)} shares</b> (+${fmtBig(n*2)}% income forever). Your printers, cash and upgrades reset to the start. Shares, vault size and the Auto-Collector stay.`; $("#pubModal").hidden = false; }
+  else if(b.id === "pubBtn"){ const n = sharesAvail(); $("#pubText").innerHTML = `You'll get <b>+${fmtBig(n)} shares</b> (+${fmtBig(n)}% income forever). Your printers, cash and upgrades reset to the start. Shares, vault size and the Auto-Collector stay.`; $("#pubModal").hidden = false; }
 });
 $("#pubYes").onclick = () => { $("#pubModal").hidden = true; goPublic(); };
 $("#rbYes").onclick = () => { $("#rbModal").hidden = true; doRebirth(); };
@@ -2015,7 +2023,7 @@ function factoryStart(){
       $("#awayModal").hidden = false; }
   }
   const sAway = (f.stockRate || 0) * Math.min(away, 7*864e5/1000);
-  if(away > 60 && sAway > 0){ addCash(sAway); setTimeout(() => toast(`📈 Your stakes in other factories paid ${money(sAway)} while you were away`), 1500); }
+  if(away > 60 && sAway > 0){ f.cash += sAway; setTimeout(() => toast(`📈 Your stakes in other factories paid ${money(sAway)} while you were away`), 1500); }
   f.last = now(); lastLogic = now();
   if(!init3D() && !$("#stage .no3d")){ const n = document.createElement("div"); n.className = "no3d notice"; n.style.cssText = "position:absolute;left:12px;right:110px;top:56px;background:#fff;color:var(--tx);border-color:var(--gold)"; n.textContent = "3D view couldn't start on this device, but the factory still runs. Use the Printers list below."; $("#stage").appendChild(n); }
   else factoryRebuild();
@@ -4027,7 +4035,7 @@ function buildBank(scene){
   const pillar = (x, z) => { const p = new THREE.Group(); const sh = cyl(.55, .6, 9, pilM, 14); sh.position.y = 4.9; p.add(sh);
     const base = box(1.6, .5, 1.6, capM); base.position.y = .25; p.add(base); const cap = box(1.7, .5, 1.7, capM); cap.position.y = 9.6; p.add(cap);
     p.position.set(x, 0, z); scene.add(p); };
-  [-15.6, -8.6, 0, 8.6, 15.6].forEach(x => pillar(x, -12.3));
+  [-15.6, -8.6, 8.6, 15.6].forEach(x => pillar(x, -12.3));   // no centre pillar: it hid the clock
   [-6, 2, 10].forEach(z => { pillar(-15.6, z); pillar(15.6, z); });
   // crown moulding
   const crown = box(34, .6, .8, capM); crown.position.set(0, 10, -12.9); scene.add(crown);
@@ -4410,7 +4418,9 @@ function checkStreak(){
 if(mem.day === undefined) mem.day = "day";
 if(mem.gfx === undefined) mem.gfx = "high";
 if(mem.crowd === undefined) mem.crowd = true;
-if(mem.adminTest) mem.testerOk = true;
+// one admin code now (552655). The old codes and the skin spawner are gone.
+if(mem.skinAdmin || mem.testerOk){ delete mem.skinAdmin; delete mem.testerOk; mem.isAdmin = false; mem.adminTest = false; }
+const ADMIN_CODE = "552655";
 function segSet(sel, v){ $$(sel + " button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v)); }
 function swSet(sel, on){ $(sel).setAttribute("aria-checked", !!on); }
 function renderMeExtras(){
@@ -4422,7 +4432,7 @@ function renderMeExtras(){
   $("#pwNote").textContent = ONLINE
     ? "Your password is never stored, only a scrambled version of it, so the game can't show it to you. Use the 👁 button on the login screen to check what you're typing."
     : "Your password is never stored, only a scrambled version of it, so the game can't show it to you. You can set a new one here.";
-  $("#adminNote").textContent = [mem.skinAdmin ? "Skin spawner unlocked" : "", mem.adminTest ? "Tester mode ON (all difficulties + FPS)" : ""].filter(Boolean).join(" · ") || "Needs an admin code.";
+  $("#adminNote").textContent = [mem.isAdmin ? "Admin unlocked on this device" : "", mem.adminTest ? "Tester mode ON (all difficulties + FPS)" : ""].filter(Boolean).join(" · ") || "Needs an admin code.";
   const top = a.inv.slice().sort((x,y)=>rarIdx(skinOf(y).r)-rarIdx(skinOf(x).r) || y.v-x.v).slice(0,60);
   $("#showSel").innerHTML = `<option value="">None</option>` + top.map(i => `<option value="${i.id}" ${a.showId === i.id ? "selected" : ""}>${itemName(i)} (${wearOf(i.f).s})</option>`).join("");
   const it = a.inv.find(i => i.id === a.showId);
@@ -4447,16 +4457,15 @@ $("#pwSave").onclick = async () => {
 };
 // admin: one button, then a code
 function adminOptsUI(){
-  $("#adminOpts").hidden = !(mem.skinAdmin || mem.testerOk);
-  $("#adminOpen").hidden = !mem.skinAdmin; $("#stashEndBtn").hidden = !mem.skinAdmin; $("#stashEndBtn").textContent = "🏦 End the Stash round now"; $("#stashEndBtn").dataset.sure = "";
-  $("#testerBtn").hidden = !mem.testerOk;
+  $("#adminOpts").hidden = !mem.isAdmin;
+  $("#adminOpen").hidden = true; $("#stashEndBtn").hidden = !mem.isAdmin; $("#stashEndBtn").textContent = "🏦 End the Stash round now"; $("#stashEndBtn").dataset.sure = "";
+  $("#testerBtn").hidden = !mem.isAdmin;
   $("#testerBtn").textContent = `🧪 Tester mode: ${mem.adminTest ? "on" : "off"}`;
 }
 $("#adminBtn").onclick = () => { sfx.click(); $("#codeRes").textContent = ""; $("#adminCode").value = ""; adminOptsUI(); $("#codeModal").hidden = false; setTimeout(() => $("#adminCode").focus(), 50); };
 $("#adminGo").onclick = () => {
   const v = $("#adminCode").value.trim(), r = $("#codeRes"); $("#adminCode").value = "";
-  if(v === "5526"){ mem.skinAdmin = true; saveLocal(); renderMeExtras(); adminOptsUI(); $("#codeModal").hidden = true; openAdmin(); return; }
-  if(v === "67911"){ mem.testerOk = true; saveLocal(); adminOptsUI(); r.textContent = "Tester options unlocked"; r.className = "result win"; sfx.click(); return; }
+  if(v === ADMIN_CODE){ mem.isAdmin = true; saveLocal(); renderMeExtras(); adminOptsUI(); r.textContent = "Admin unlocked"; r.className = "result win"; sfx.click(); return; }
   r.textContent = "Wrong code"; r.className = "result lose"; sfx.lose();
 };
 $("#adminCode").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); $("#adminGo").click(); } });
@@ -4532,7 +4541,7 @@ $("#bookCrate").onchange = e => { bookCrate = e.target.value; renderBook(); };
 
 // ---------- admin skin spawner (code 5526) ----------
 function openAdmin(){
-  if(!mem.skinAdmin) return;
+  return;   // the skin spawner was removed
   if(!$("#adCrate").options.length){
     $("#adCrate").innerHTML = CRATES.map(c => `<option value="${c.id}">${c.n}</option>`).join("");
     $("#adGun").innerHTML = GUNS.map(g => `<option value="${g}">${WEAP[g].n}</option>`).join("");
